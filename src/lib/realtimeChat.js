@@ -106,7 +106,19 @@ export async function sendMessage(sessionId, senderRole, senderId, content, atta
 // ─── Image Upload ─────────────────────────────────────────────────
 
 const ALLOWED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/jpg'];
+const ALLOWED_IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg'];
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB
+
+function getFileExtension(fileName = '') {
+  const parts = fileName.toLowerCase().split('.');
+  return parts.length > 1 ? parts.pop() : '';
+}
+
+function isAllowedImageFile(file) {
+  const mimeType = (file?.type || '').toLowerCase();
+  const extension = getFileExtension(file?.name || '');
+  return ALLOWED_IMAGE_TYPES.includes(mimeType) || ALLOWED_IMAGE_EXTENSIONS.includes(extension);
+}
 
 /**
  * Upload an image to Supabase Storage for chat attachments.
@@ -118,7 +130,7 @@ const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB
 export async function uploadChatImage(file, sessionId) {
   if (!file) throw new Error('No file provided');
 
-  if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
+  if (!isAllowedImageFile(file)) {
     throw new Error('Only PNG and JPEG images are allowed');
   }
 
@@ -126,17 +138,30 @@ export async function uploadChatImage(file, sessionId) {
     throw new Error('Image must be smaller than 5 MB');
   }
 
-  const fileExt = file.name.split('.').pop().toLowerCase();
+  const fileExt = getFileExtension(file.name);
   const fileName = `${sessionId}/${Date.now()}_${crypto.randomUUID()}.${fileExt}`;
+  const contentType = file.type || (fileExt === 'png' ? 'image/png' : 'image/jpeg');
 
   const { error: uploadError } = await supabase.storage
     .from('chat-attachments')
     .upload(fileName, file, {
-      contentType: file.type,
+      contentType,
       cacheControl: '3600',
     });
 
-  if (uploadError) throw uploadError;
+  if (uploadError) {
+    if (uploadError.message?.toLowerCase().includes('bucket')) {
+      throw new Error(
+        'Upload failed: Supabase storage bucket "chat-attachments" is missing or inaccessible.'
+      );
+    }
+    if (uploadError.message?.toLowerCase().includes('row-level security')) {
+      throw new Error(
+        'Upload failed: Storage policy blocked this upload. Check INSERT policy for "chat-attachments".'
+      );
+    }
+    throw uploadError;
+  }
 
   const { data: urlData } = supabase.storage
     .from('chat-attachments')

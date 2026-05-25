@@ -48,6 +48,11 @@ function formatFileSize(bytes) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+function getFileExtension(fileName = '') {
+  const parts = fileName.toLowerCase().split('.');
+  return parts.length > 1 ? parts.pop() : '';
+}
+
 // ─── Component ────────────────────────────────────────────────────
 
 const ChatBot = () => {
@@ -216,7 +221,11 @@ const ChatBot = () => {
 
     // Validate file type
     const validTypes = ['image/png', 'image/jpeg', 'image/jpg'];
-    if (!validTypes.includes(file.type)) {
+    const validExtensions = ['png', 'jpg', 'jpeg'];
+    const fileExt = getFileExtension(file.name);
+    const validByMime = validTypes.includes((file.type || '').toLowerCase());
+    const validByExt = validExtensions.includes(fileExt);
+    if (!validByMime && !validByExt) {
       setAttachError('Only PNG and JPEG images are allowed.');
       e.target.value = '';
       return;
