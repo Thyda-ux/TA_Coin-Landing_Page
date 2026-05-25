@@ -28,6 +28,11 @@ import styles from './styles/ChatBot.module.css';
  * Adjust this value as needed.
  */
 const CHAT_INACTIVITY_TIMEOUT_MINUTES = 20;
+/**
+ * Warning lead time in minutes before inactivity timeout.
+ * Set to 0 or null to disable pre-timeout warning.
+ */
+const CHAT_TIMEOUT_WARNING_MINUTES = 5;
 
 const INITIAL_MESSAGES = [
   {
@@ -92,8 +97,10 @@ const ChatBot = () => {
     isWaiting: agentWaiting,
     agentJoined,
     sessionTimedOut,
+    inactivityDeadline,
     messages: agentMessages,
   } = useAgentConnection({ inactivityTimeoutMinutes: CHAT_INACTIVITY_TIMEOUT_MINUTES });
+  const [remainingInactivityMs, setRemainingInactivityMs] = useState(null);
 
   const currentTime = useMemo(
     () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -103,6 +110,17 @@ const ChatBot = () => {
 
   // Determine if attachment button should be enabled
   const canAttach = mode === 'agent' && agentJoined;
+
+  const clearPendingImage = useCallback(() => {
+    if (pendingImage?.preview) {
+      URL.revokeObjectURL(pendingImage.preview);
+    }
+    setPendingImage(null);
+    setAttachError('');
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  }, [pendingImage]);
 
   // Auto-scroll to bottom when messages change
   useEffect(() => {
@@ -129,6 +147,22 @@ const ChatBot = () => {
       return () => clearTimeout(timer);
     }
   }, [sessionTimedOut, mode, disconnectAgent, clearPendingImage]);
+
+  useEffect(() => {
+    if (!inactivityDeadline || mode !== 'agent' || sessionTimedOut) {
+      setRemainingInactivityMs(null);
+      return;
+    }
+
+    const updateRemaining = () => {
+      const remaining = Math.max(0, inactivityDeadline - Date.now());
+      setRemainingInactivityMs(remaining);
+    };
+
+    updateRemaining();
+    const interval = setInterval(updateRemaining, 1000);
+    return () => clearInterval(interval);
+  }, [inactivityDeadline, mode, sessionTimedOut]);
 
   // Clean up image preview URL on unmount or when cleared
   useEffect(() => {
@@ -230,17 +264,6 @@ const ChatBot = () => {
   };
 
   // ─── Image Attachment Handlers ────────────────────────────────
-
-  const clearPendingImage = useCallback(() => {
-    if (pendingImage?.preview) {
-      URL.revokeObjectURL(pendingImage.preview);
-    }
-    setPendingImage(null);
-    setAttachError('');
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  }, [pendingImage]);
 
   const handleAttachClick = () => {
     if (!canAttach) return;
@@ -798,6 +821,25 @@ const ChatBot = () => {
   );
 
   // ─── Render: Footer (shared between modes) ───────────────────
+  const timeoutWarningMinutes = Math.max(
+    0,
+    Math.min(
+      CHAT_TIMEOUT_WARNING_MINUTES || 0,
+      Math.max((CHAT_INACTIVITY_TIMEOUT_MINUTES || 0) - 0.1, 0),
+    ),
+  );
+  const timeoutWarningThresholdMs = timeoutWarningMinutes * 60 * 1000;
+  const showTimeoutWarning =
+    mode === 'agent' &&
+    agentJoined &&
+    !sessionTimedOut &&
+    timeoutWarningThresholdMs > 0 &&
+    remainingInactivityMs !== null &&
+    remainingInactivityMs > 0 &&
+    remainingInactivityMs <= timeoutWarningThresholdMs;
+  const remainingWarningSeconds = remainingInactivityMs ? Math.ceil(remainingInactivityMs / 1000) : 0;
+  const warningMinutes = Math.floor(remainingWarningSeconds / 60);
+  const warningSeconds = String(remainingWarningSeconds % 60).padStart(2, '0');
 
   const renderFooter = () => {
     const isAgentMode = mode === 'agent';
@@ -813,6 +855,12 @@ const ChatBot = () => {
         {/* Attachment error message */}
         {attachError && (
           <div className={styles.attachmentError}>{attachError}</div>
+        )}
+
+        {showTimeoutWarning && (
+          <div className={styles.sessionWarning}>
+            Session will end in {warningMinutes}:{warningSeconds} due to inactivity. Send a message to keep it open.
+          </div>
         )}
 
         <form className={styles.chatbotFooter} onSubmit={handleSubmit}>

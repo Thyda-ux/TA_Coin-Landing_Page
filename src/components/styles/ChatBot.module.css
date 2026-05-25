@@ -564,6 +564,15 @@
   border-top: 1px solid #fecaca;
 }
 
+.sessionWarning {
+  font-size: 0.75rem;
+  color: #92400e;
+  padding: 0.4rem 1.25rem;
+  background: #fffbeb;
+  border-top: 1px solid #fde68a;
+  border-bottom: 1px solid #fde68a;
+}
+
 /* Hidden file input */
 .hiddenFileInput {
   display: none;

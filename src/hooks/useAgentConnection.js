@@ -32,6 +32,7 @@ export const useAgentConnection = ({ inactivityTimeoutMinutes = DEFAULT_INACTIVI
   const [session, setSession] = useState(null);
   const [agentJoined, setAgentJoined] = useState(false);
   const [sessionTimedOut, setSessionTimedOut] = useState(false);
+  const [inactivityDeadline, setInactivityDeadline] = useState(null);
 
   const messageSubRef = useRef(null);
   const statusSubRef = useRef(null);
@@ -52,6 +53,7 @@ export const useAgentConnection = ({ inactivityTimeoutMinutes = DEFAULT_INACTIVI
       clearTimeout(inactivityTimerRef.current);
       inactivityTimerRef.current = null;
     }
+    setInactivityDeadline(null);
   }, []);
 
   /**
@@ -67,6 +69,7 @@ export const useAgentConnection = ({ inactivityTimeoutMinutes = DEFAULT_INACTIVI
     if (!minutes || minutes <= 0) return;
 
     const timeoutMs = minutes * 60 * 1000;
+    setInactivityDeadline(Date.now() + timeoutMs);
 
     inactivityTimerRef.current = setTimeout(async () => {
       if (!currentSession?.id) return;
@@ -84,6 +87,7 @@ export const useAgentConnection = ({ inactivityTimeoutMinutes = DEFAULT_INACTIVI
       setIsConnected(false);
       setIsWaiting(false);
       setAgentJoined(false);
+      setInactivityDeadline(null);
     }, timeoutMs);
   }, [clearInactivityTimer]);
 
@@ -228,6 +232,7 @@ export const useAgentConnection = ({ inactivityTimeoutMinutes = DEFAULT_INACTIVI
     isWaiting,
     agentJoined,
     sessionTimedOut,
+    inactivityDeadline,
     messages,
     session,
     userId: userId.current,
