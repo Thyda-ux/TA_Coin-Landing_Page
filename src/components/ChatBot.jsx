@@ -18,6 +18,17 @@ import styles from './styles/ChatBot.module.css';
 
 // ─── Constants ────────────────────────────────────────────────────
 
+/**
+ * Chat session inactivity timeout in minutes.
+ * If the user does not send a message within this duration,
+ * the agent chat session will be automatically closed.
+ * The session and messages are preserved in the agent's chat history.
+ *
+ * Set to 0 or null to disable the timeout.
+ * Adjust this value as needed.
+ */
+const CHAT_INACTIVITY_TIMEOUT_MINUTES = 20;
+
 const INITIAL_MESSAGES = [
   {
     role: 'bot',
@@ -72,7 +83,7 @@ const ChatBot = () => {
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
-  // Supabase Realtime agent connection
+  // Supabase Realtime agent connection (with configurable inactivity timeout)
   const {
     connectToAgent: startAgentSession,
     sendMessage: sendAgentMessage,
@@ -80,8 +91,9 @@ const ChatBot = () => {
     disconnect: disconnectAgent,
     isWaiting: agentWaiting,
     agentJoined,
+    sessionTimedOut,
     messages: agentMessages,
-  } = useAgentConnection();
+  } = useAgentConnection({ inactivityTimeoutMinutes: CHAT_INACTIVITY_TIMEOUT_MINUTES });
 
   const currentTime = useMemo(
     () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -95,7 +107,28 @@ const ChatBot = () => {
   // Auto-scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, agentMessages, mode]);
+  }, [messages, agentMessages, mode, sessionTimedOut]);
+
+  // Handle session timeout — show message and switch back to bot mode
+  useEffect(() => {
+    if (sessionTimedOut && mode === 'agent') {
+      // Small delay so the system timeout message appears in the chat first
+      const timer = setTimeout(() => {
+        disconnectAgent();
+        clearPendingImage();
+        setMode('bot');
+        setMessages((prev) => [
+          ...prev,
+          {
+            role: 'bot',
+            text: `⏱️ Your agent chat session was closed due to ${CHAT_INACTIVITY_TIMEOUT_MINUTES} minutes of inactivity. The conversation has been saved. How else can I help you?`,
+            options: ['FAQs', 'Connect to Agent'],
+          },
+        ]);
+      }, 1500);
+      return () => clearTimeout(timer);
+    }
+  }, [sessionTimedOut, mode, disconnectAgent, clearPendingImage]);
 
   // Clean up image preview URL on unmount or when cleared
   useEffect(() => {
@@ -536,8 +569,9 @@ const ChatBot = () => {
           <h3>Live Agent</h3>
         </div>
         <div className={styles.agentStatus}>
-          {agentWaiting && <span className={styles.statusWaiting}>Waiting...</span>}
-          {agentJoined && <span className={styles.statusConnected}>Connected</span>}
+          {agentWaiting && !sessionTimedOut && <span className={styles.statusWaiting}>Waiting...</span>}
+            {agentJoined && !sessionTimedOut && <span className={styles.statusConnected}>Connected</span>}
+            {sessionTimedOut && <span className={styles.statusWaiting}>Timed Out</span>}
         </div>
         <button onClick={toggleChat}>
           <X size={18} />
@@ -768,7 +802,7 @@ const ChatBot = () => {
   const renderFooter = () => {
     const isAgentMode = mode === 'agent';
     const canSend = isAgentMode
-      ? agentJoined && (input.trim() || pendingImage)
+      ? agentJoined && !sessionTimedOut && (input.trim() || pendingImage)
       : input.trim() && !isLoading;
 
     return (
@@ -810,14 +844,16 @@ const ChatBot = () => {
               className={styles.chatInput}
               placeholder={
                 isAgentMode
-                  ? agentJoined
-                    ? 'Type your message to agent...'
-                    : 'Waiting for agent...'
+                  ? sessionTimedOut
+                    ? 'Session timed out'
+                    : agentJoined
+                      ? 'Type your message to agent...'
+                      : 'Waiting for agent...'
                   : 'Type your message'
               }
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              disabled={isAgentMode && !agentJoined}
+              disabled={isAgentMode && (!agentJoined || sessionTimedOut)}
             />
           </div>
 

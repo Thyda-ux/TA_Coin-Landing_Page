@@ -58,6 +58,27 @@ export async function closeSession(sessionId) {
 }
 
 /**
+ * Close a chat session due to user inactivity timeout.
+ * Sends a system message explaining the reason, then closes the session.
+ * The session and all messages remain in the database for agent chat history.
+ *
+ * @param {string} sessionId - The chat session ID
+ * @param {number} timeoutMinutes - The inactivity timeout duration (for the message)
+ */
+export async function closeSessionWithTimeout(sessionId, timeoutMinutes) {
+  // Send a system message so both user and agent see why the session closed
+  await sendMessage(
+    sessionId,
+    'system',
+    'system',
+    `⏱️ This chat session has been automatically closed due to ${timeoutMinutes} minutes of user inactivity. The conversation history is preserved.`
+  );
+
+  // Close the session (keeps it in the database for agent history)
+  return closeSession(sessionId);
+}
+
+/**
  * Get all waiting/active sessions (for agent dashboard)
  */
 export async function getActiveSessions() {
