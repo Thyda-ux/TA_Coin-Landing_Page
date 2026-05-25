@@ -1,0 +1,235 @@
+.pageWrapper {
+  background-color: var(--color-background);
+  min-height: 100vh;
+}
+
+/* ---- Light Header ---- */
+.headerSection {
+  padding: 8rem 0 2.5rem;
+  text-align: center;
+  background-color: var(--color-background);
+}
+
+.latestUpdateLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1.5px solid var(--color-primary);
+  color: var(--color-primary);
+  border-radius: 9999px;
+  padding: 0.45rem 1.4rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-bottom: 1.5rem;
+  letter-spacing: 0.08em;
+  background: transparent;
+}
+
+.headerTitle {
+  font-family: var(--font-heading);
+  font-size: clamp(2rem, 4vw, 2.6rem);
+  font-weight: 800;
+  color: var(--color-primary);
+  margin-bottom: 0.85rem;
+  line-height: 1.2;
+}
+
+.headerTitle span {
+  color: var(--color-secondary);
+}
+
+.headerSubtitle {
+  color: var(--color-text-muted);
+  font-size: 1rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* ---- Filter Tabs (pill buttons) ---- */
+.filterRow {
+  display: flex;
+  justify-content: center;
+  gap: 0.85rem;
+  padding: 1.75rem 1.5rem 1rem;
+  flex-wrap: wrap;
+}
+
+.filterTab {
+  background: transparent;
+  border: 1.5px solid var(--color-border);
+  color: var(--color-text-muted);
+  border-radius: 9999px;
+  padding: 0.45rem 1.4rem;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+}
+
+.filterTab:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.filterTab.active {
+  background-color: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* ---- Cards grid ---- */
+.cardsSection {
+  padding: 2rem 1.5rem 5rem;
+}
+
+.newsGrid {
+  display: grid;
+  gap: 2rem;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .newsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .newsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* ---- News Card ---- */
+.newsCard {
+  background-color: white;
+  border-radius: 1.25rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  cursor: pointer;
+}
+
+.newsCard:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.09);
+}
+
+.imageWrapper {
+  position: relative;
+  width: 100%;
+  padding-top: 65%;
+  overflow: hidden;
+  background-color: #f1f5f9;
+}
+
+.newsImage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.newsOverlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(255,255,255,0.45);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+.newsCard:hover .newsOverlay {
+  opacity: 1;
+}
+
+.hoverIcon {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #ffffff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  opacity: 0;
+  transform: scale(0.8);
+  transition: all 0.3s ease;
+  z-index: 2;
+}
+
+.newsCard:hover .hoverIcon {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.cardContent {
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.cardMeta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.85rem;
+}
+
+.categoryGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.categoryLine {
+  width: 3px;
+  height: 14px;
+  border-radius: 2px;
+}
+
+.categoryText {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.dateGroup {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #9ca3af;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.newsTitle {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #1f2937;
+  line-height: 1.5;
+  margin: 0;
+  transition: color 0.3s ease;
+}
+
+.newsCard:hover .newsTitle {
+  color: var(--color-primary) !important;
+}
+
+/* ---- Empty State ---- */
+.emptyState {
+  text-align: center;
+  padding: 4rem 0;
+  color: var(--color-text-muted);
+  font-size: 1.1rem;
+}

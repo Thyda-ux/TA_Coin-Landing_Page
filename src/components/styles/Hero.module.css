@@ -1,0 +1,102 @@
+.heroSection {
+  position: relative;
+  padding-top: 6rem;
+  padding-bottom: 6rem;
+  overflow: hidden;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bgImage {
+  position: absolute;
+  top: -5%;
+  left: -5%;
+  right: -5%;
+  bottom: -5%;
+  background-image: url('../../assets/airport_bridge.jpg');
+  background-size: cover;
+  background-position: center;
+  z-index: -1;
+  opacity: 0.5;
+}
+
+.gradientOverlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(68,174,216,0.6) 60%, rgba(255,215,0,0.4) 100%);
+  z-index: -2;
+}
+
+.contentContainer {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+  text-shadow: 0 2px 15px rgba(0,0,0,0.4);
+  position: relative;
+  z-index: 10;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: var(--color-primary);
+  color: #ffffff;
+  border-radius: 9999px;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  margin-bottom: 1rem;
+  font-size: 0.875rem;
+  text-shadow: none;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.mainHeading {
+  font-size: clamp(2.5rem, 5vw, 4rem);
+  margin-bottom: 1rem;
+  animation-delay: 100ms;
+  color: #ffffff;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.highlightText {
+  color: var(--color-secondary);
+  text-shadow: 0 2px 15px rgba(0,0,0,0.6);
+}
+
+.subText {
+  font-size: 1.125rem;
+  color: rgba(255,255,255,0.95);
+  margin-bottom: 1.5rem;
+  animation-delay: 200ms;
+  max-width: 700px;
+  margin: 0 auto 1.5rem auto;
+  font-weight: 500;
+}
+
+.actionContainer {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+  animation-delay: 300ms;
+  text-shadow: none;
+}
+
+.primaryBtn {
+  gap: 0.5rem;
+  border: none;
+}
+
+.outlineBtn {
+  color: #ffffff;
+  border-color: #ffffff;
+  background-color: rgba(0,0,0,0.2);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}

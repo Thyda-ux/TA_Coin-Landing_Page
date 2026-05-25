@@ -1,0 +1,98 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  backdrop-filter: blur(4px);
+  animation: fadeIn var(--transition-normal);
+}
+
+.popupCard {
+  background-color: white;
+  border-radius: 1rem;
+  width: 100%;
+  max-width: 950px; /* Increased width per user request */
+  max-height: 65vh; /* Further reduced height for a tighter feel */
+  overflow-y: auto; /* Enable scrollable content inside popup */
+  box-shadow: var(--shadow-xl);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  animation: scaleUp var(--transition-normal);
+}
+
+.closeHint {
+  text-align: center;
+  font-size: 0.9rem;
+  color: #9ca3af;
+  margin-top: 2rem;
+  font-style: italic;
+  font-weight: 500;
+  transition: color 0.3s ease;
+}
+
+.closeHint.ready {
+  color: #4b5563;
+  animation: pulseHint 2s infinite;
+}
+
+@keyframes pulseHint {
+  0% { opacity: 0.7; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.02); }
+  100% { opacity: 0.7; transform: scale(1); }
+}
+
+.imageContainer {
+  width: 100%;
+  background-color: white; /* White edge background */
+  padding: 2rem 2rem 0; /* Add padding to give white edge around the image */
+}
+
+.bannerImage {
+  width: 100%;
+  height: auto;
+  display: block;
+  object-fit: cover;
+  border-radius: 0.5rem; /* Adding slightly rounded corners inside the white edge */
+  max-height: 220px; /* Reduced image height to save space */}
+
+.content {
+  padding: 1.5rem 2rem 2.5rem; /* Reduced top padding since image container has padding */
+  background-color: white;
+}
+
+.title {
+  color: #dc2626; /* Important Notice Red */
+  font-size: 1.6rem;
+  font-weight: 700;
+  margin-bottom: 1.25rem;
+  font-family: var(--font-heading);
+}
+
+.message {
+  color: #4b5563;
+  font-size: 1.1rem;
+  line-height: 1.6;
+}
+
+.message p {
+  margin-bottom: 0.75rem;
+}
+
+.message p:last-child {
+  margin-bottom: 0;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleUp {
+  from { transform: scale(0.95); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
