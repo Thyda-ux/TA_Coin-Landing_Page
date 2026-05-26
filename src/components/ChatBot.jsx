@@ -9,11 +9,13 @@ import {
   MessageSquare,
   ArrowLeft,
   Headphones,
+  ClipboardList,
   Image as ImageIcon,
 } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { semanticSearchFaqs, generateAiResponse, keywordSearchFaqs } from '../lib/vectorService';
 import { useAgentConnection } from '../hooks/useAgentConnection';
+import { validateSupportForm, buildSupportSummary, createSupportTicket } from '../lib/supportIntake';
 import styles from './styles/ChatBot.module.css';
 
 // ─── Constants ────────────────────────────────────────────────────
@@ -51,10 +53,32 @@ const CATEGORY_OPTIONS = [
   'Careers',
   'Legal',
 ];
+const ISSUE_TYPE_OPTIONS = [
+  'Account Issue',
+  'General Enquiry',
+  'KYC / Verification Issue',
+  'Login Issue',
+  'OTP Issue',
+  'P2P Dispute',
+  'P2P Issue',
+  'Technical Support',
+  'Transaction Issue',
+  'Voucher / Coupon Issue',
+  'Withdrawal Issue',
+];
 
 const ACCEPTED_IMAGE_TYPES = '.png,.jpg,.jpeg';
 const HIGH_CONFIDENCE = 0.65;
 const LOW_CONFIDENCE = 0.45;
+
+const getInitialSupportForm = () => ({
+  active: false,
+  name: '',
+  email: '',
+  phone: '',
+  issueType: ISSUE_TYPE_OPTIONS[0],
+  issueDetails: '',
+});
 
 // ─── Helper: format file size ─────────────────────────────────────
 
@@ -76,7 +100,9 @@ const ChatBot = () => {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [messages, setMessages] = useState(INITIAL_MESSAGES);
-  const [supportForm, setSupportForm] = useState({ step: null, description: '' });
+  const [supportForm, setSupportForm] = useState(getInitialSupportForm);
+  const [supportFormError, setSupportFormError] = useState('');
+  const [supportFormInlineFaq, setSupportFormInlineFaq] = useState(false);
   const [mode, setMode] = useState('bot'); // 'bot' | 'agent'
 
   // Image attachment state (agent mode only)
@@ -86,6 +112,7 @@ const ChatBot = () => {
   const [lightboxUrl, setLightboxUrl] = useState(null);
 
   const messagesEndRef = useRef(null);
+  const supportFormRef = useRef(null);
   const fileInputRef = useRef(null);
 
   // Supabase Realtime agent connection (with configurable inactivity timeout)
@@ -99,6 +126,7 @@ const ChatBot = () => {
     sessionTimedOut,
     inactivityDeadline,
     messages: agentMessages,
+    userId: chatUserId,
   } = useAgentConnection({ inactivityTimeoutMinutes: CHAT_INACTIVITY_TIMEOUT_MINUTES });
   const [remainingInactivityMs, setRemainingInactivityMs] = useState(null);
 
@@ -316,21 +344,72 @@ const ChatBot = () => {
 
   // ─── Form & Option Handlers ───────────────────────────────────
 
-  const handleFormInput = async (text) => {
-    if (supportForm.step === 'description') {
-      setIsLoading(true);
-      try {
-        await connectToAgent(text);
-        setSupportForm({ step: null, description: '' });
-      } catch (err) {
-        setMessages((prev) => [
-          ...prev,
-          { role: 'bot', text: `Support request failed: ${err.message}` },
-        ]);
-        setSupportForm({ step: null, description: '' });
-      } finally {
-        setIsLoading(false);
-      }
+  const resetSupportForm = () => {
+    setSupportForm(getInitialSupportForm());
+    setSupportFormError('');
+    setSupportFormInlineFaq(false);
+  };
+
+  const focusSupportForm = () => {
+    requestAnimationFrame(() => {
+      supportFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+  };
+
+  const submitSupportForm = async (event) => {
+    event.preventDefault();
+    if (isLoading) return;
+    setSupportFormError('');
+    const { normalized, isValid, errors } = validateSupportForm(supportForm);
+
+    if (!isValid) {
+      const firstError = Object.values(errors)[0] || 'Please complete all required fields.';
+      setSupportFormError(firstError);
+      return;
+    }
+
+    let ticketInfo = null;
+    try {
+      ticketInfo = await createSupportTicket(supabase, normalized, {
+        source: 'chatbot',
+        chatUserId,
+        metadata: { channel: 'live_chat_widget' },
+      });
+    } catch (ticketErr) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: 'bot',
+          text: `Note: We could not save your ticket record in the database (${ticketErr.message}), but we will still connect you to a live agent.`,
+        },
+      ]);
+    }
+
+    const summary = ticketInfo
+      ? `${buildSupportSummary(normalized)}\nTicket No: ${ticketInfo.ticket_no || ticketInfo.id}`
+      : buildSupportSummary(normalized);
+
+    setMessages((current) => [
+      ...current,
+      {
+        role: 'user',
+        text: ticketInfo
+          ? `Ticket: ${ticketInfo.ticket_no || ticketInfo.id}\nName: ${normalized.name}\nEmail: ${normalized.email}\nPhone: ${normalized.phone}\nIssue Type: ${normalized.issueType}\nIssue: ${normalized.issueDetails}`
+          : `Name: ${normalized.name}\nEmail: ${normalized.email}\nPhone: ${normalized.phone}\nIssue Type: ${normalized.issueType}\nIssue: ${normalized.issueDetails}`,
+      },
+    ]);
+
+    setIsLoading(true);
+    try {
+      await connectToAgent(summary);
+      resetSupportForm();
+    } catch (err) {
+      setMessages((prev) => [
+        ...prev,
+        { role: 'bot', text: `Support request failed: ${err.message}` },
+      ]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -338,6 +417,11 @@ const ChatBot = () => {
     setMessages((current) => [...current, { role: 'user', text: option }]);
 
     if (option === 'FAQs') {
+      if (supportForm.active) {
+        setSupportFormInlineFaq(true);
+        focusSupportForm();
+        return;
+      }
       showFaqCategories();
       return;
     }
@@ -348,11 +432,19 @@ const ChatBot = () => {
     }
 
     if (option === 'Connect to Agent') {
-      setSupportForm({ step: 'description', description: '' });
+      if (supportForm.active) {
+        setSupportFormInlineFaq(false);
+        focusSupportForm();
+        return;
+      }
+      setSupportForm({ ...getInitialSupportForm(), active: true });
+      setSupportFormError('');
+      setSupportFormInlineFaq(false);
       setMessages((prev) => [
         ...prev,
-        { role: 'bot', text: 'Please describe your issue in detail:' },
+        { role: 'bot', text: 'Please complete this support form so we can connect you to the right agent faster.' },
       ]);
+      focusSupportForm();
     }
   };
 
@@ -386,11 +478,6 @@ const ChatBot = () => {
     setInput('');
 
     setMessages((current) => [...current, { role: 'user', text: cleanMessage }]);
-
-    if (supportForm.step) {
-      await handleFormInput(cleanMessage);
-      return;
-    }
 
     setIsLoading(true);
 
@@ -815,6 +902,155 @@ const ChatBot = () => {
           </div>
         )}
 
+        {supportForm.active && (
+          <form ref={supportFormRef} className={styles.supportFormCard} onSubmit={submitSupportForm}>
+            <div className={styles.supportFormHeader}>
+              <div className={styles.supportFormHeaderIcon}>
+                <User size={18} />
+              </div>
+              <div>
+                <h4>Customer Details</h4>
+                <p>Basic customer identity and contact information.</p>
+              </div>
+              <button
+                type="button"
+                className={styles.supportFormCloseBtn}
+                onClick={resetSupportForm}
+                disabled={isLoading}
+                aria-label="Close support form"
+              >
+                <X size={14} />
+              </button>
+            </div>
+
+            <div className={styles.supportFormGrid}>
+              <label className={styles.supportField} htmlFor="support-name">
+                <span>Customer Name *</span>
+                <input
+                  id="support-name"
+                  name="customerName"
+                  type="text"
+                  value={supportForm.name}
+                  onChange={(e) => setSupportForm((prev) => ({ ...prev, name: e.target.value }))}
+                  placeholder="Enter full name"
+                  autoComplete="name"
+                  pattern="[A-Za-z\s]{2,80}"
+                  title="Name should contain letters only (no numbers or symbols)."
+                  required
+                />
+              </label>
+              <label className={styles.supportField} htmlFor="support-phone">
+                <span>Phone Number *</span>
+                <input
+                  id="support-phone"
+                  name="phoneNumber"
+                  type="tel"
+                  value={supportForm.phone}
+                  onChange={(e) => setSupportForm((prev) => ({ ...prev, phone: e.target.value }))}
+                  placeholder="Enter phone number"
+                  autoComplete="tel"
+                  inputMode="numeric"
+                  pattern="[0-9]{7,30}"
+                  title="Phone number should contain digits only."
+                  required
+                />
+              </label>
+              <label className={`${styles.supportField} ${styles.supportFieldFull}`} htmlFor="support-email">
+                <span>Email *</span>
+                <input
+                  id="support-email"
+                  name="email"
+                  type="email"
+                  value={supportForm.email}
+                  onChange={(e) => setSupportForm((prev) => ({ ...prev, email: e.target.value }))}
+                  placeholder="customer@email.com"
+                  autoComplete="email"
+                  required
+                />
+              </label>
+            </div>
+
+            <div className={styles.supportFormHeader}>
+              <div className={styles.supportFormHeaderIcon}>
+                <ClipboardList size={18} />
+              </div>
+              <div>
+                <h4>Issue Details</h4>
+                <p>Classify and describe the customer issue clearly.</p>
+              </div>
+            </div>
+
+            <div className={styles.supportIssueGrid}>
+              <label className={styles.supportField} htmlFor="support-issue-type">
+                <span>Issue Type *</span>
+                <select
+                  id="support-issue-type"
+                  name="issueType"
+                  value={supportForm.issueType}
+                  onChange={(e) => setSupportForm((prev) => ({ ...prev, issueType: e.target.value }))}
+                  autoComplete="off"
+                  required
+                >
+                  {ISSUE_TYPE_OPTIONS.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label className={`${styles.supportField} ${styles.supportFieldFull}`} htmlFor="support-issue-details">
+                <span>Issue Details (Optional)</span>
+                <textarea
+                  id="support-issue-details"
+                  name="issueDetails"
+                  value={supportForm.issueDetails}
+                  onChange={(e) => setSupportForm((prev) => ({ ...prev, issueDetails: e.target.value }))}
+                  placeholder="Please describe your issue clearly."
+                  autoComplete="off"
+                  rows={4}
+                />
+              </label>
+            </div>
+
+            {supportFormError && (
+              <p className={styles.supportFormError}>{supportFormError}</p>
+            )}
+
+            <div className={styles.supportFormActions}>
+              <button
+                type="button"
+                className={styles.supportCancelBtn}
+                onClick={resetSupportForm}
+                disabled={isLoading}
+              >
+                Cancel
+              </button>
+              <button type="submit" className={styles.supportSubmitBtn} disabled={isLoading}>
+                {isLoading ? 'Submitting...' : 'Connect to Agent'}
+              </button>
+            </div>
+
+            {supportFormInlineFaq && (
+              <div className={styles.supportInlineFaq}>
+                <p>Choose a category while keeping this form open:</p>
+                <div className={styles.chatOptions}>
+                  {CATEGORY_OPTIONS.map((category) => (
+                    <button
+                      key={category}
+                      type="button"
+                      className={styles.chatOptionBtn}
+                      onClick={() => handleOption(category)}
+                      disabled={isLoading}
+                    >
+                      {category}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </form>
+        )}
+
         <div ref={messagesEndRef} />
       </div>
     </>
@@ -845,7 +1081,7 @@ const ChatBot = () => {
     const isAgentMode = mode === 'agent';
     const canSend = isAgentMode
       ? agentJoined && !sessionTimedOut && (input.trim() || pendingImage)
-      : input.trim() && !isLoading;
+      : input.trim() && !isLoading && !supportForm.active;
 
     return (
       <>
@@ -867,6 +1103,8 @@ const ChatBot = () => {
           {/* Hidden file input */}
           <input
             ref={fileInputRef}
+            id="chat-attachment-input"
+            name="chatAttachment"
             type="file"
             accept={ACCEPTED_IMAGE_TYPES}
             className={styles.hiddenFileInput}
@@ -888,6 +1126,8 @@ const ChatBot = () => {
 
           <div className={styles.chatInputWrapper}>
             <input
+              id="chat-message-input"
+              name="chatMessage"
               type="text"
               className={styles.chatInput}
               placeholder={
@@ -897,11 +1137,14 @@ const ChatBot = () => {
                     : agentJoined
                       ? 'Type your message to agent...'
                       : 'Waiting for agent...'
-                  : 'Type your message'
+                  : supportForm.active
+                    ? 'Complete the support form above'
+                    : 'Type your message'
               }
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              disabled={isAgentMode && (!agentJoined || sessionTimedOut)}
+              autoComplete="off"
+              disabled={(isAgentMode && (!agentJoined || sessionTimedOut)) || supportForm.active}
             />
           </div>
 

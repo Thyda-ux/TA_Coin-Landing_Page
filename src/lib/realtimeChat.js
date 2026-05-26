@@ -3,42 +3,102 @@ import { supabase } from './supabase';
 /**
  * Supabase Realtime Chat Service
  * Replaces the WebSocket-based agent-server.js with Supabase Realtime channels.
- * No separate server needed — works globally out of the box.
+ * No separate server needed â€” works globally out of the box.
  */
 
-// ─── Session Management ───────────────────────────────────────────
+// â”€â”€â”€ Session Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+const MAX_ACTIVE_SESSIONS_PER_AGENT = 5;
+
+const findAvailableAgentForSession = async () => {
+  const { data: agents, error: agentError } = await supabase
+    .from('agents')
+    .select('id, full_name, email, role, status')
+    .eq('status', 'Available');
+
+  if (agentError) throw agentError;
+  if (!agents || agents.length === 0) return null;
+
+  const { data: activeSessions, error: activeError } = await supabase
+    .from('chat_sessions')
+    .select('id, agent_id')
+    .eq('status', 'active')
+    .not('agent_id', 'is', null);
+
+  if (activeError) throw activeError;
+
+  const agentsWithCount = agents.map((agent) => ({
+    ...agent,
+    activeSessionCount: (activeSessions || []).filter(
+      (session) => session.agent_id === agent.id
+    ).length,
+  }));
+
+  const eligibleAgents = agentsWithCount.filter(
+    (agent) => agent.activeSessionCount < MAX_ACTIVE_SESSIONS_PER_AGENT
+  );
+
+  if (eligibleAgents.length === 0) return null;
+
+  const lowestCount = Math.min(
+    ...eligibleAgents.map((agent) => agent.activeSessionCount)
+  );
+
+  const lowestAgents = eligibleAgents.filter(
+    (agent) => agent.activeSessionCount === lowestCount
+  );
+
+  return lowestAgents[Math.floor(Math.random() * lowestAgents.length)];
+};
 /**
  * Create a new chat session for a user requesting agent support
  */
 export async function createChatSession(userId, metadata = {}) {
+  const selectedAgent = await findAvailableAgentForSession();
+
   const { data, error } = await supabase
     .from('chat_sessions')
     .insert({
       user_id: userId,
-      status: 'waiting',
-      metadata,
+      status: selectedAgent ? 'active' : 'waiting',
+      agent_id: selectedAgent?.id || null,
+      metadata: {
+        ...metadata,
+        autoAssigned: Boolean(selectedAgent),
+        assignedAgentName: selectedAgent?.full_name || null,
+        assignedAgentEmail: selectedAgent?.email || null,
+      },
     })
     .select()
     .single();
 
   if (error) throw error;
-  return data;
-}
 
-/**
- * Agent claims a waiting session
- */
-export async function claimSession(sessionId, agentId) {
-  const { data, error } = await supabase
-    .from('chat_sessions')
-    .update({ status: 'active', agent_id: agentId })
-    .eq('id', sessionId)
-    .eq('status', 'waiting')
-    .select()
-    .single();
+  if (selectedAgent) {
+    await supabase.from('chat_messages').insert({
+      session_id: data.id,
+      sender_role: 'system',
+      sender_id: 'system',
+      content: `You are now connected with ${selectedAgent.full_name}.`,
+      metadata: {
+        type: 'auto_assigned',
+        agentId: selectedAgent.id,
+        agentName: selectedAgent.full_name,
+      },
+    });
+  } else {
+    await supabase.from('chat_messages').insert({
+      session_id: data.id,
+      sender_role: 'system',
+      sender_id: 'system',
+      content:
+        'Thank you for contacting us. All agents are currently busy, but someone will assist you shortly.',
+      metadata: {
+        type: 'waiting_queue',
+      },
+    });
+  }
 
-  if (error) throw error;
   return data;
 }
 
@@ -71,7 +131,7 @@ export async function closeSessionWithTimeout(sessionId, timeoutMinutes) {
     sessionId,
     'system',
     'system',
-    `⏱️ This chat session has been automatically closed due to ${timeoutMinutes} minutes of user inactivity. The conversation history is preserved.`
+    `This chat session has been automatically closed due to ${timeoutMinutes} minutes of user inactivity. The conversation history is preserved.`
   );
 
   // Close the session (keeps it in the database for agent history)
@@ -92,7 +152,7 @@ export async function getActiveSessions() {
   return data || [];
 }
 
-// ─── Message Management ───────────────────────────────────────────
+// â”€â”€â”€ Message Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
  * Send a message in a chat session
@@ -124,7 +184,7 @@ export async function sendMessage(sessionId, senderRole, senderId, content, atta
   return data;
 }
 
-// ─── Image Upload ─────────────────────────────────────────────────
+// â”€â”€â”€ Image Upload â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const ALLOWED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/jpg'];
 const ALLOWED_IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg'];
@@ -205,7 +265,7 @@ export async function getSessionMessages(sessionId) {
   return data || [];
 }
 
-// ─── Realtime Subscriptions ───────────────────────────────────────
+// â”€â”€â”€ Realtime Subscriptions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
  * Subscribe to new messages in a specific session (for both user and agent)
@@ -292,7 +352,7 @@ export function createPresenceChannel(sessionId, userId, role) {
   return channel;
 }
 
-// ─── Utility ──────────────────────────────────────────────────────
+// â”€â”€â”€ Utility â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
  * Generate a unique anonymous user ID
@@ -317,3 +377,5 @@ export function getOrCreateAgentId() {
   }
   return agentId;
 }
+
+
