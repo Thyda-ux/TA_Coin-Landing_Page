@@ -16,6 +16,7 @@ import { supabase } from '../lib/supabase';
 import { semanticSearchFaqs, generateAiResponse, keywordSearchFaqs } from '../lib/vectorService';
 import { useAgentConnection } from '../hooks/useAgentConnection';
 import { validateSupportForm, buildSupportSummary, createSupportTicket } from '../lib/supportIntake';
+import { getFileExtension } from '../lib/realtimeChat';
 import styles from './styles/ChatBot.module.css';
 
 // ─── Constants ────────────────────────────────────────────────────
@@ -86,11 +87,6 @@ function formatFileSize(bytes) {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
-
-function getFileExtension(fileName = '') {
-  const parts = fileName.toLowerCase().split('.');
-  return parts.length > 1 ? parts.pop() : '';
 }
 
 // ─── Component ────────────────────────────────────────────────────
@@ -804,16 +800,6 @@ const ChatBot = () => {
               )}
               <div className={styles.chatBubble}>
                 {item.text}
-                {item.source && (
-                  <div className={styles.chatRagMeta}>
-                    <span className={styles.sourceLabel}>Source: {item.source}</span>
-                    {item.score && (
-                      <span className={styles.confidence}>
-                        Confidence: {(item.score * 100).toFixed(0)}%
-                      </span>
-                    )}
-                  </div>
-                )}
                 {item.category && <div className={styles.chatCategory}>{item.category}</div>}
                 {item.related && item.related.length > 0 && (
                   <div className={styles.chatRelatedSuggestions}>

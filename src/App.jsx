@@ -18,7 +18,6 @@ import Disclaimer from './components/Disclaimer';
 import BackToTop from './components/BackToTop';
 import HomePopup from './components/HomePopup';
 import ChatBot from './components/ChatBot';
-import { useRealtimeFaqs } from './hooks/useRealtimeFaqs';
 
 function Home() {
   return (
@@ -37,9 +36,6 @@ function Home() {
 
 function App() {
   const location = useLocation();
-
-  // Subscribe to FAQ changes — auto-updates vector embeddings when admin edits FAQs
-  useRealtimeFaqs();
 
   useEffect(() => {
     if (location.hash) {

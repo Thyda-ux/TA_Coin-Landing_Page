@@ -190,7 +190,7 @@ const ALLOWED_IMAGE_TYPES = ['image/png', 'image/jpeg', 'image/jpg'];
 const ALLOWED_IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg'];
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5 MB
 
-function getFileExtension(fileName = '') {
+export function getFileExtension(fileName = '') {
   const parts = fileName.toLowerCase().split('.');
   return parts.length > 1 ? parts.pop() : '';
 }
@@ -220,7 +220,10 @@ export async function uploadChatImage(file, sessionId) {
   }
 
   const fileExt = getFileExtension(file.name);
-  const fileName = `${sessionId}/${Date.now()}_${crypto.randomUUID()}.${fileExt}`;
+  const uuid = (typeof crypto !== 'undefined' && crypto.randomUUID)
+    ? crypto.randomUUID()
+    : Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15);
+  const fileName = `${sessionId}/${Date.now()}_${uuid}.${fileExt}`;
   const contentType = file.type || (fileExt === 'png' ? 'image/png' : 'image/jpeg');
 
   const { error: uploadError } = await supabase.storage

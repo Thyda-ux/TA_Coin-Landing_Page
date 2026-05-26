@@ -106,8 +106,8 @@ export async function smartSearchFaqs(query) {
   if (intents.length > 0 && intents[0].score >= 0.5) {
     var results = [];
     intents.slice(0, 3).forEach(function(intent) {
-      var faq = faqs.find(function(f) { return f.question.toLowerCase() === intent.faqMatch.toLowerCase(); });
-      if (faq) { results.push({ id: faq.id, question: faq.question, answer: faq.answer, category: faq.category, score: intent.score }); }
+      var faq = faqs.find(function(f) { return f.question.toLowerCase() === intent.faqMatch.toLowerCase(); }); // FAQ match from intent
+      if (faq) { results.push({ id: faq.id, question: faq.question, answer: faq.answer, category: faq.category, score: intent.score || 0.95 }); }
     });
     if (results.length > 0) {
       console.log('Intent: ' + intents[0].intent + ' (' + intents[0].score + ')');

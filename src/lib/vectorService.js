@@ -3,6 +3,25 @@ import { smartSearchFaqs, extractKeywords, expandWithSynonyms } from './smartSea
 
 const EMBEDDING_TABLE = 'faq_embeddings';
 const MIN_CONFIDENCE = 0.45;
+const SMART_DIRECT_HIT = 0.62;
+const SEMANTIC_MATCH_THRESHOLD = 0.5;
+const SEMANTIC_MATCH_COUNT = 8;
+
+function normalizeQueryText(query = '') {
+  return query.replace(/\s+/g, ' ').trim();
+}
+
+function dedupeByFaqId(results = []) {
+  const map = new Map();
+  for (const item of results) {
+    if (!item?.id) continue;
+    const existing = map.get(item.id);
+    if (!existing || (item.score || 0) > (existing.score || 0)) {
+      map.set(item.id, item);
+    }
+  }
+  return Array.from(map.values()).sort((a, b) => (b.score || 0) - (a.score || 0));
+}
 
 /**
  * Generate embedding via Supabase Edge Function (Gemini text-embedding-004)
@@ -21,7 +40,7 @@ async function generateEmbedding(text) {
 export const keywordSearchFaqs = async (query) => {
   try {
     if (!supabase) return [];
-    const clean = query.trim().toLowerCase();
+    const clean = normalizeQueryText(query).toLowerCase();
     if (!clean) return [];
 
     const keywords = extractKeywords(clean);
@@ -38,8 +57,7 @@ export const keywordSearchFaqs = async (query) => {
 
     if (!exErr && exact && exact.length > 0) {
       return exact.map((faq, i) => ({
-        id: faq.id, question: faq.question, answer: faq.answer,
-        category: faq.category, score: 0.95 - i * 0.05,
+        id: faq.id, question: faq.question, answer: faq.answer
       }));
     }
 
@@ -74,7 +92,9 @@ export const keywordSearchFaqs = async (query) => {
       return { id: faq.id, question: faq.question, answer: faq.answer, category: faq.category, score };
     });
 
-    return scored.filter((r) => r.score >= MIN_CONFIDENCE).sort((a, b) => b.score - a.score).slice(0, 5);
+    return dedupeByFaqId(
+      scored.filter((r) => r.score >= MIN_CONFIDENCE).slice(0, 8),
+    ).slice(0, 5);
   } catch (err) {
     console.error('Keyword Search Error:', err);
     return [];
@@ -86,38 +106,48 @@ export const keywordSearchFaqs = async (query) => {
  * Priority: 1) Intent detection (instant) 2) Vector similarity 3) DB keyword search
  */
 export const semanticSearchFaqs = async (query) => {
+  const cleanQuery = normalizeQueryText(query);
+  if (!cleanQuery) return [];
+
   // Step 1: Try smart local search first (intent + cached FAQ matching)
+  let smartResults = [];
   try {
-    const smartResults = await smartSearchFaqs(query);
-    if (smartResults && smartResults.length > 0 && smartResults[0].score >= 0.5) {
-      console.log('Smart search hit:', smartResults[0].question, `(${smartResults[0].score})`);
-      return smartResults;
+    smartResults = await smartSearchFaqs(cleanQuery);
+    if (smartResults && smartResults.length > 0 && smartResults[0].score >= SMART_DIRECT_HIT) {
+      console.log('Smart search hit:', smartResults[0].question);
+      return dedupeByFaqId(smartResults).slice(0, 5).map(({ score, category, ...rest }) => rest);
     }
   } catch (err) {
     console.warn('Smart search failed, trying semantic:', err);
   }
 
   // Step 2: Try semantic vector search (RAG pipeline)
+  let semanticResults = [];
   try {
-    const queryVector = await generateEmbedding(query);
+    const queryVector = await generateEmbedding(cleanQuery);
     const { data, error } = await supabase.rpc('match_faqs', {
       query_embedding: queryVector,
-      match_threshold: 0.6,
-      match_count: 5,
+      match_threshold: SEMANTIC_MATCH_THRESHOLD,
+      match_count: SEMANTIC_MATCH_COUNT,
     });
     if (error) throw error;
 
-    const results = data.map((m) => ({
+    semanticResults = (data || []).map((m) => ({
       id: m.faq_id, question: m.question, answer: m.answer,
       category: m.category, score: m.similarity,
-    }));
-    if (results.length > 0) return results;
+    })).filter((r) => r.score >= MIN_CONFIDENCE);
   } catch (err) {
     console.warn('Semantic search failed, trying keyword fallback:', err);
   }
 
-  // Step 3: Database keyword search as last resort
-  return await keywordSearchFaqs(query);
+  // Step 3: Keyword fallback and hybrid merge
+  const keywordResults = await keywordSearchFaqs(cleanQuery);
+  const merged = dedupeByFaqId([
+    ...(smartResults || []),
+    ...(semanticResults || []),
+    ...(keywordResults || []),
+  ]);
+  return merged.slice(0, 5);
 };
 
 /**
@@ -129,7 +159,8 @@ export const generateAiResponse = async (query, matches) => {
       return "I couldn't find relevant information in our knowledge base.";
     }
     const context = matches
-      .map((m, i) => `[${i + 1}] Q: ${m.question}\nA: ${m.answer}`)
+      .slice(0, 3)
+      .map((m) => `Q: ${m.question}\nA: ${String(m.answer || '').slice(0, 900)}`)
       .join('\n\n');
 
     const { data, error } = await supabase.functions.invoke('rag-completion', {
@@ -148,16 +179,21 @@ export const generateAiResponse = async (query, matches) => {
  */
 export const populateVectorStore = async () => {
   try {
+    if (!supabase) {
+      console.warn('Supabase client not initialized. Cannot populate vector store.');
+      return { successCount: 0, errorCount: 0 };
+    }
     console.log('Starting FAQ vector population...');
     const { data: faqs, error: faqError } = await supabase
       .from('support_faqs')
-      .select('id, question, answer, category');
+      .select('id, question, answer, category, keywords');
     if (faqError) throw faqError;
 
     let ok = 0, fail = 0;
     for (const faq of faqs) {
       try {
-        const embedding = await generateEmbedding(`${faq.question} ${faq.answer}`);
+        const textToEmbed = `Category: ${faq.category || ''}\nQuestion: ${faq.question}\nAnswer: ${faq.answer}\nKeywords: ${(faq.keywords || []).join(', ')}`;
+        const embedding = await generateEmbedding(textToEmbed);
         const { error: insErr } = await supabase
           .from(EMBEDDING_TABLE)
           .upsert({ faq_id: faq.id, question: faq.question, answer: faq.answer, category: faq.category, embedding });
@@ -181,6 +217,10 @@ export const populateVectorStore = async () => {
  */
 export const initializeVectorStore = async () => {
   try {
+    if (!supabase) {
+      console.warn('Supabase client not initialized. Skipping vector store initialization.');
+      return;
+    }
     const { error } = await supabase.rpc('match_faqs', {
       query_embedding: Array(768).fill(0),
       match_threshold: 0.6,
@@ -204,7 +244,8 @@ export const subscribeToFaqUpdates = (onUpdate) => {
         try {
           const { eventType, new: newFaq, old: oldFaq } = payload;
           if (eventType === 'INSERT' || eventType === 'UPDATE') {
-            const embedding = await generateEmbedding(`${newFaq.question} ${newFaq.answer}`);
+            const textToEmbed = `Category: ${newFaq.category || ''}\nQuestion: ${newFaq.question}\nAnswer: ${newFaq.answer}\nKeywords: ${(newFaq.keywords || []).join(', ')}`;
+            const embedding = await generateEmbedding(textToEmbed);
             const { error } = await supabase.from(EMBEDDING_TABLE).upsert({
               faq_id: newFaq.id, question: newFaq.question, answer: newFaq.answer,
               category: newFaq.category, embedding,
