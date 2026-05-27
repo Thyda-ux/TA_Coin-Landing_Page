@@ -1,15 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  ExternalLink,
-  X,
-  Paperclip,
-  Send,
-  User,
-  Info,
-  MessageSquare,
-  ArrowLeft,
-  Headphones,
-  ClipboardList,
+  ExternalLink, X, Paperclip, Send, User, Info, 
+  MessageSquare, ArrowLeft, Headphones, ClipboardList, 
   Image as ImageIcon,
 } from 'lucide-react';
 import {
@@ -20,7 +12,6 @@ import {
 } from '../hooks/useChatSession';
 import styles from './styles/ChatBot.module.css';
 
-// ─── Component ────────────────────────────────────────────────────
 const ChatBot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const messagesEndRef = useRef(null);
@@ -37,10 +28,11 @@ const ChatBot = () => {
     });
   };
 
+  // ✅ Pulling all state and handlers (including setMessages) from the custom hook
   const {
     input, setInput,
     isLoading,
-    messages,
+    messages, setMessages, 
     supportForm, setSupportForm,
     supportFormError,
     mode,
@@ -238,6 +230,8 @@ const ChatBot = () => {
                           ))}
                         </div>
                       )}
+                      
+                      {/* Interactive FAQ Links with Fix */}
                       {item.faqLinks && (
                         <div className={styles.chatOptions}>
                           {item.faqLinks.map(faq => (
