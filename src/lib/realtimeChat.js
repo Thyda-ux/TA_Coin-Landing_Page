@@ -1,12 +1,5 @@
 import { supabase } from './supabase';
 
-/**
- * Supabase Realtime Chat Service
- * Replaces the WebSocket-based agent-server.js with Supabase Realtime channels.
- * No separate server needed â€” works globally out of the box.
- */
-
-// â”€â”€â”€ Session Management â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 const MAX_ACTIVE_SESSIONS_PER_AGENT = 5;
 

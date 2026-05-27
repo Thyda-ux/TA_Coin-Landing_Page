@@ -1,11 +1,9 @@
 import { supabase } from './supabase';
-import { smartSearchFaqs, extractKeywords, expandWithSynonyms } from './smartSearch';
+import { smartSearchFaqs } from './smartSearch';
 
 const EMBEDDING_TABLE = 'faq_embeddings';
 const MIN_CONFIDENCE = 0.45;
 const SMART_DIRECT_HIT = 0.62;
-const SEMANTIC_MATCH_THRESHOLD = 0.5;
-const SEMANTIC_MATCH_COUNT = 8;
 
 function normalizeQueryText(query = '') {
   return query.replace(/\s+/g, ' ').trim();
@@ -35,119 +33,51 @@ async function generateEmbedding(text) {
 }
 
 /**
- * Database keyword search fallback (used when local cache is empty)
- */
-export const keywordSearchFaqs = async (query) => {
-  try {
-    if (!supabase) return [];
-    const clean = normalizeQueryText(query).toLowerCase();
-    if (!clean) return [];
-
-    const keywords = extractKeywords(clean);
-    const expanded = expandWithSynonyms(keywords).filter((w) => w.length > 2).slice(0, 10);
-    if (expanded.length === 0) return [];
-
-    // Exact phrase match first
-    const { data: exact, error: exErr } = await supabase
-      .from('support_faqs')
-      .select('id, question, answer, category, keywords')
-      .eq('is_published', true)
-      .ilike('question', `%${clean}%`)
-      .limit(5);
-
-    if (!exErr && exact && exact.length > 0) {
-      return exact.map((faq, i) => ({
-        id: faq.id, question: faq.question, answer: faq.answer
-      }));
-    }
-
-    // Word-level search
-    const orFilters = expanded
-      .flatMap((w) => [`question.ilike.%${w}%`, `answer.ilike.%${w}%`])
-      .join(',');
-
-    const { data: matches, error: mErr } = await supabase
-      .from('support_faqs')
-      .select('id, question, answer, category, keywords')
-      .eq('is_published', true)
-      .or(orFilters)
-      .limit(15);
-
-    if (mErr) throw mErr;
-    if (!matches || matches.length === 0) return [];
-
-    const scored = matches.map((faq) => {
-      const qLow = faq.question.toLowerCase();
-      const aLow = faq.answer.toLowerCase();
-      const fkw = (faq.keywords || []).join(' ').toLowerCase();
-      let total = 0, max = 0;
-      for (const w of expanded) {
-        let wt = 0;
-        if (qLow.includes(w)) wt += 4;
-        if (fkw.includes(w)) wt += 3;
-        if (aLow.includes(w)) wt += 1;
-        total += wt; max += 8;
-      }
-      const score = max > 0 ? Math.round(((total / max) * 0.95) * 100) / 100 : 0;
-      return { id: faq.id, question: faq.question, answer: faq.answer, category: faq.category, score };
-    });
-
-    return dedupeByFaqId(
-      scored.filter((r) => r.score >= MIN_CONFIDENCE).slice(0, 8),
-    ).slice(0, 5);
-  } catch (err) {
-    console.error('Keyword Search Error:', err);
-    return [];
-  }
-};
-
-/**
- * Main search: Smart local search → Semantic search → Keyword DB fallback
- * Priority: 1) Intent detection (instant) 2) Vector similarity 3) DB keyword search
+ * Main search: Smart local search (Intent) → Hybrid DB Search (Vectors + True Keywords)
  */
 export const semanticSearchFaqs = async (query) => {
   const cleanQuery = normalizeQueryText(query);
   if (!cleanQuery) return [];
 
   // Step 1: Try smart local search first (intent + cached FAQ matching)
-  let smartResults = [];
   try {
-    smartResults = await smartSearchFaqs(cleanQuery);
+    const smartResults = await smartSearchFaqs(cleanQuery);
     if (smartResults && smartResults.length > 0 && smartResults[0].score >= SMART_DIRECT_HIT) {
       console.log('Smart search hit:', smartResults[0].question);
       return dedupeByFaqId(smartResults).slice(0, 5).map(({ score, category, ...rest }) => rest);
     }
   } catch (err) {
-    console.warn('Smart search failed, trying semantic:', err);
+    console.warn('Smart search failed, moving to hybrid:', err);
   }
 
-  // Step 2: Try semantic vector search (RAG pipeline)
-  let semanticResults = [];
+  // Step 2: Hybrid Search (The database handles both Vectors and Keywords simultaneously)
   try {
     const queryVector = await generateEmbedding(cleanQuery);
-    const { data, error } = await supabase.rpc('match_faqs', {
+    
+    // Call our new Postgres function
+    const { data, error } = await supabase.rpc('hybrid_search_faq', {
+      query_text: cleanQuery,
       query_embedding: queryVector,
-      match_threshold: SEMANTIC_MATCH_THRESHOLD,
-      match_count: SEMANTIC_MATCH_COUNT,
+      match_count: 5,
     });
+
     if (error) throw error;
 
-    semanticResults = (data || []).map((m) => ({
-      id: m.faq_id, question: m.question, answer: m.answer,
-      category: m.category, score: m.similarity,
-    })).filter((r) => r.score >= MIN_CONFIDENCE);
-  } catch (err) {
-    console.warn('Semantic search failed, trying keyword fallback:', err);
-  }
+    // Map the results back to the format ChatBot.jsx expects
+    const results = (data || []).map((m) => ({
+      id: m.faq_id, 
+      question: m.question, 
+      answer: m.answer,
+      category: m.category, 
+      score: m.similarity,
+    }));
 
-  // Step 3: Keyword fallback and hybrid merge
-  const keywordResults = await keywordSearchFaqs(cleanQuery);
-  const merged = dedupeByFaqId([
-    ...(smartResults || []),
-    ...(semanticResults || []),
-    ...(keywordResults || []),
-  ]);
-  return merged.slice(0, 5);
+    return dedupeByFaqId(results).filter((r) => r.score >= MIN_CONFIDENCE);
+
+  } catch (err) {
+    console.error('Hybrid search failed:', err);
+    return [];
+  }
 };
 
 /**
@@ -221,9 +151,9 @@ export const initializeVectorStore = async () => {
       console.warn('Supabase client not initialized. Skipping vector store initialization.');
       return;
     }
-    const { error } = await supabase.rpc('match_faqs', {
+    const { error } = await supabase.rpc('hybrid_search_faq', {
+      query_text: 'init',
       query_embedding: Array(768).fill(0),
-      match_threshold: 0.6,
       match_count: 1,
     });
     if (error && !error.message.includes('function')) throw error;
