@@ -40,12 +40,19 @@ export const SYNONYM_MAP = {
   password: ['login', 'credentials', 'passcode'], report: ['complain', 'flag', 'notify', 'alert', 'submit'],
   scam: ['fraud', 'phishing', 'fake', 'suspicious'], money: ['funds', 'cash', 'balance', 'payment'],
   pay: ['payment', 'send', 'transfer', 'transaction'], account: ['profile', 'wallet'],
-  delete: ['remove', 'close', 'deactivate', 'cancel', 'terminate'], safe: ['secure', 'security', 'protection'],
+  delete: ['remove', 'close', 'deactivate', 'cancel', 'terminate', 'deleting'], safe: ['secure', 'security', 'protection'],
   help: ['support', 'assist', 'contact'], job: ['career', 'position', 'work', 'employment', 'hiring'],
-  invest: ['investment', 'buy', 'purchase', 'trade'], download: ['install', 'app store', 'google play'],
-  verify: ['verification', 'kyc', 'identity'], stuck: ['pending', 'failed', 'error', 'problem'],
+  invest: ['investment', 'buy', 'purchase', 'trade', 'staking'], download: ['install', 'app store', 'google play', 'get the app'],
+  verify: ['verification', 'kyc', 'identity', 'id check'], stuck: ['pending', 'failed', 'error', 'problem'],
   hacked: ['unauthorized', 'compromised', 'stolen'], location: ['address', 'office', 'headquarters'],
   phone: ['call', 'number', 'telephone'], email: ['mail', 'contact'],
+  dividends: ['returns', 'profit', 'earnings', 'incentives'],
+  tacoin: ['ta coin', 't.a coin', 'token', 'coin'],
+  withdrawal: ['withdraw', 'cash out', 'get money', 'transfer to bank', 'cashout'],
+  fees: ['cost', 'charge', 'price', 'payment', 'commission', 'transaction fee'],
+  limit: ['maximum', 'max', 'minimum', 'min', 'cap', 'restriction', 'threshold'],
+  khqr: ['qr code', 'scan', 'bakong', 'payment qr', 'kh-qr'],
+  bakong: ['khqr', 'nbc', 'national bank', 'central bank', 'bakong wallet'],
 };
 
 export const STOP_WORDS = new Set([

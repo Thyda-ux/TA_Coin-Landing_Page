@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   ExternalLink,
   X,
@@ -12,393 +12,93 @@ import {
   ClipboardList,
   Image as ImageIcon,
 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
-import { askSupportBot } from '../lib/vectorService';
-import { useAgentConnection } from '../hooks/useAgentConnection';
-import { validateSupportForm, buildSupportSummary, createSupportTicket } from '../lib/supportIntake';
-import { getFileExtension } from '../lib/realtimeChat';
+import {
+  useChatSession,
+  ISSUE_TYPE_OPTIONS,
+  ACCEPTED_IMAGE_TYPES,
+  formatFileSize
+} from '../hooks/useChatSession';
 import styles from './styles/ChatBot.module.css';
-
-// ─── Constants ────────────────────────────────────────────────────
-const CHAT_INACTIVITY_TIMEOUT_MINUTES = 20;
-const CHAT_TIMEOUT_WARNING_MINUTES = 5;
-
-const INITIAL_MESSAGES = [
-  {
-    role: 'bot',
-    text: 'Hi there. How can we help you today?',
-    options: ['FAQs', 'Connect to Agent'],
-  },
-];
-
-const CATEGORY_OPTIONS = [
-  'Getting Started',
-  'Account & App',
-  'Payments & Wallet',
-  'Security',
-  'Support',
-  'Careers',
-  'Legal',
-];
-
-const ISSUE_TYPE_OPTIONS = [
-  'Account Issue',
-  'General Enquiry',
-  'KYC / Verification Issue',
-  'Login Issue',
-  'OTP Issue',
-  'P2P Dispute',
-  'P2P Issue',
-  'Technical Support',
-  'Transaction Issue',
-  'Voucher / Coupon Issue',
-  'Withdrawal Issue',
-];
-
-const ACCEPTED_IMAGE_TYPES = '.png,.jpg,.jpeg';
-
-const getInitialSupportForm = () => ({
-  active: false,
-  name: '',
-  email: '',
-  phone: '',
-  issueType: ISSUE_TYPE_OPTIONS[0],
-  issueDetails: '',
-});
-
-function formatFileSize(bytes) {
-  if (bytes < 1024) return `${bytes} B`;
-  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-}
 
 // ─── Component ────────────────────────────────────────────────────
 const ChatBot = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [messages, setMessages] = useState(INITIAL_MESSAGES);
-  const [supportForm, setSupportForm] = useState(getInitialSupportForm);
-  const [supportFormError, setSupportFormError] = useState('');
-  const [supportFormInlineFaq, setSupportFormInlineFaq] = useState(false);
-  const [mode, setMode] = useState('bot'); // 'bot' | 'agent'
-
-  const [pendingImage, setPendingImage] = useState(null); 
-  const [isUploading, setIsUploading] = useState(false);
-  const [attachError, setAttachError] = useState('');
-  const [lightboxUrl, setLightboxUrl] = useState(null);
-
   const messagesEndRef = useRef(null);
   const supportFormRef = useRef(null);
   const fileInputRef = useRef(null);
+  const focusFrameRef = useRef();
+
+  const toggleChat = () => setIsOpen((current) => !current);
+
+  const focusSupportForm = () => {
+    cancelAnimationFrame(focusFrameRef.current);
+    focusFrameRef.current = requestAnimationFrame(() => {
+      supportFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+  };
 
   const {
-    connectToAgent: startAgentSession,
-    sendMessage: sendAgentMessage,
-    sendImage: sendAgentImage,
-    disconnect: disconnectAgent,
-    isWaiting: agentWaiting,
+    input, setInput,
+    isLoading,
+    messages,
+    supportForm, setSupportForm,
+    supportFormError,
+    mode,
+    pendingImage,
+    isUploading,
+    attachError, setAttachError,
+    lightboxUrl, setLightboxUrl,
+    remainingInactivityMs,
+    agentWaiting,
     agentJoined,
     sessionTimedOut,
-    inactivityDeadline,
-    messages: agentMessages,
-    userId: chatUserId,
-  } = useAgentConnection({ inactivityTimeoutMinutes: CHAT_INACTIVITY_TIMEOUT_MINUTES });
-  
-  const [remainingInactivityMs, setRemainingInactivityMs] = useState(null);
+    agentMessages,
+    showTimeoutWarning,
+    handleSubmit,
+    handleOption,
+    submitSupportForm,
+    backToBot,
+    handleFileSelect,
+    clearPendingImage,
+    resetSupportForm
+  } = useChatSession(isOpen);
 
-  const currentTime = useMemo(
-    () => new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    [messages.length],
-  );
+  const formatMessageTime = (item) => {
+    const date = item.timestamp || item.created_at ? new Date(item.timestamp || item.created_at) : new Date();
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
 
   const canAttach = mode === 'agent' && agentJoined;
-
-  const clearPendingImage = useCallback(() => {
-    if (pendingImage?.preview) URL.revokeObjectURL(pendingImage.preview);
-    setPendingImage(null);
-    setAttachError('');
-    if (fileInputRef.current) fileInputRef.current.value = '';
-  }, [pendingImage]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, agentMessages, mode, sessionTimedOut]);
 
   useEffect(() => {
-    if (sessionTimedOut && mode === 'agent') {
-      const timer = setTimeout(() => {
-        disconnectAgent();
-        clearPendingImage();
-        setMode('bot');
-        setMessages((prev) => [
-          ...prev,
-          {
-            role: 'bot',
-            text: `⏱️ Your agent chat session was closed due to inactivity. The conversation has been saved. How else can I help you?`,
-            options: ['FAQs', 'Connect to Agent'],
-          },
-        ]);
-      }, 1500);
-      return () => clearTimeout(timer);
-    }
-  }, [sessionTimedOut, mode, disconnectAgent, clearPendingImage]);
-
-  useEffect(() => {
-    if (!inactivityDeadline || mode !== 'agent' || sessionTimedOut) {
-      setRemainingInactivityMs(null);
-      return;
-    }
-    const updateRemaining = () => {
-      setRemainingInactivityMs(Math.max(0, inactivityDeadline - Date.now()));
-    };
-    updateRemaining();
-    const interval = setInterval(updateRemaining, 1000);
-    return () => clearInterval(interval);
-  }, [inactivityDeadline, mode, sessionTimedOut]);
-
-  useEffect(() => {
     return () => {
-      if (pendingImage?.preview) URL.revokeObjectURL(pendingImage.preview);
+      if (focusFrameRef.current) cancelAnimationFrame(focusFrameRef.current);
     };
-  }, [pendingImage]);
+  }, []);
 
-  const toggleChat = () => setIsOpen((current) => !current);
-
-  // ─── FAQ Handlers ─────────────────────────────────────────────
-  const showFaqCategories = () => {
-    setMessages((current) => [
-      ...current,
-      {
-        role: 'bot',
-        text: 'Choose a category or type your question.',
-        options: CATEGORY_OPTIONS,
-      },
-    ]);
-  };
-
-  const showCategoryFaqs = async (category) => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('support_faqs')
-        .select('question, answer, category')
-        .eq('is_published', true)
-        .eq('category', category)
-        .order('question', { ascending: true });
-
-      if (error) throw error;
-
-      setMessages((current) => [
-        ...current,
-        {
-          role: 'bot',
-          text: data?.length ? `Here are common ${category} questions:` : `No FAQs found for ${category}.`,
-          faqLinks: data || [],
-        },
-      ]);
-    } catch (err) {
-      setMessages((current) => [...current, { role: 'bot', text: `Error: ${err.message}` }]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // ─── Agent Connection ─────────────────────────────────────────
-  const connectToAgent = async (description) => {
-    try {
-      setIsLoading(true);
-      await startAgentSession(description);
-      setMode('agent');
-      setMessages((current) => [...current, { role: 'bot', text: '🔄 Connecting you to a live agent. Please wait...' }]);
-    } catch (err) {
-      setMessages((current) => [...current, { role: 'bot', text: `Failed to connect: ${err.message}.` }]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const backToBot = () => {
-    disconnectAgent();
-    clearPendingImage();
-    setMode('bot');
-    setMessages((prev) => [
-      ...prev,
-      {
-        role: 'bot',
-        text: 'You have left the agent chat. How else can I help you?',
-        options: ['FAQs', 'Connect to Agent'],
-      },
-    ]);
-  };
-
-  // ─── Image Handlers ───────────────────────────────────────────
   const handleAttachClick = () => {
     if (!canAttach) return;
     setAttachError('');
     fileInputRef.current?.click();
   };
 
-  const handleFileSelect = (e) => {
+  const onFileChange = (e) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-
-    if (file.size > 5 * 1024 * 1024) {
-      setAttachError('Image must be smaller than 5 MB.');
-      e.target.value = '';
-      return;
-    }
-    setAttachError('');
-    setPendingImage({ file, preview: URL.createObjectURL(file) });
-  };
-
-  const sendPendingImage = async () => {
-    if (!pendingImage?.file || isUploading) return;
-    setIsUploading(true);
-    setAttachError('');
-    try {
-      await sendAgentImage(pendingImage.file);
-      clearPendingImage();
-    } catch (err) {
-      setAttachError(`Upload failed: ${err.message}`);
-    } finally {
-      setIsUploading(false);
+    if (file) {
+      const success = handleFileSelect(file);
+      if (!success) e.target.value = '';
     }
   };
 
-  // ─── Form Handlers ────────────────────────────────────────────
-  const resetSupportForm = () => {
-    setSupportForm(getInitialSupportForm());
-    setSupportFormError('');
-    setSupportFormInlineFaq(false);
+  const handleClearImage = () => {
+    clearPendingImage();
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
-
-  const focusSupportForm = () => {
-    requestAnimationFrame(() => {
-      supportFormRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    });
-  };
-
-  const submitSupportForm = async (event) => {
-    event.preventDefault();
-    if (isLoading) return;
-    setSupportFormError('');
-    const { normalized, isValid, errors } = validateSupportForm(supportForm);
-
-    if (!isValid) {
-      setSupportFormError(Object.values(errors)[0] || 'Please complete all required fields.');
-      return;
-    }
-
-    let ticketInfo = null;
-    try {
-      ticketInfo = await createSupportTicket(supabase, normalized, { source: 'chatbot', chatUserId });
-    } catch (ticketErr) {
-      console.warn("Could not save ticket record:", ticketErr);
-    }
-
-    const summary = ticketInfo
-      ? `${buildSupportSummary(normalized)}\nTicket No: ${ticketInfo.ticket_no || ticketInfo.id}`
-      : buildSupportSummary(normalized);
-
-    setMessages((current) => [
-      ...current,
-      { role: 'user', text: `Submitted Ticket for: ${normalized.issueType}` },
-    ]);
-
-    setIsLoading(true);
-    try {
-      await connectToAgent(summary);
-      resetSupportForm();
-    } catch (err) {
-      setMessages((prev) => [...prev, { role: 'bot', text: `Support request failed: ${err.message}` }]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleOption = async (option) => {
-    setMessages((current) => [...current, { role: 'user', text: option }]);
-
-    if (option === 'FAQs') {
-      if (supportForm.active) {
-        setSupportFormInlineFaq(true);
-        focusSupportForm();
-        return;
-      }
-      showFaqCategories();
-      return;
-    }
-
-    if (CATEGORY_OPTIONS.includes(option)) {
-      await showCategoryFaqs(option);
-      return;
-    }
-
-    if (option === 'Connect to Agent') {
-      setSupportForm({ ...getInitialSupportForm(), active: true });
-      setSupportFormError('');
-      setSupportFormInlineFaq(false);
-      setMessages((prev) => [...prev, { role: 'bot', text: 'Please complete this support form so we can connect you to the right agent.' }]);
-      focusSupportForm();
-    }
-  };
-
-  // ─── AI Submit Handler ────────────────────────────────────────
-  const handleSubmit = async (event) => {
-    event.preventDefault();
-    const cleanMessage = input.trim();
-
-    // 1. Agent Mode Handling
-    if (mode === 'agent') {
-      if (pendingImage?.file) await sendPendingImage();
-      if (cleanMessage) {
-        setInput('');
-        try { await sendAgentMessage(cleanMessage); } catch (err) { console.error('Failed to send:', err); }
-      }
-      return;
-    }
-
-    // 2. Bot Mode Handling (Agentic Edge Function)
-    if (!cleanMessage || isLoading) return;
-    setInput('');
-
-    // Append user message immediately
-    const updatedMessages = [...messages, { role: 'user', text: cleanMessage }];
-    setMessages(updatedMessages);
-    setIsLoading(true);
-
-    try {
-      // Extract the last 6 messages to send as conversational context
-      const chatHistory = updatedMessages.slice(-6).map(m => ({ role: m.role, text: m.text }));
-      
-      const data = await askSupportBot(cleanMessage, chatHistory);
-
-      if (data.action === "TRIGGER_ACCOUNT_UI") {
-        setMessages((current) => [
-          ...current,
-          { role: 'bot', text: data.text, options: ['Go to Account Settings'] },
-        ]);
-      } else {
-        setMessages((current) => [
-          ...current,
-          { role: 'bot', text: data.text },
-        ]);
-      }
-    } catch (error) {
-      setMessages((current) => [
-        ...current,
-        {
-          role: 'bot',
-          text: "I'm having trouble searching our knowledge base right now. Would you like to connect to an agent?",
-          options: ['Connect to Agent'],
-        },
-      ]);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  
   // ─── Render Helpers ───────────────────────────────────────────
   const renderLightbox = () => {
     if (!lightboxUrl) return null;
@@ -435,7 +135,7 @@ const ChatBot = () => {
             <div className={styles.uploadingSpinner} /><span>Uploading...</span>
           </div>
         ) : (
-          <button className={styles.imagePreviewRemove} onClick={clearPendingImage} type="button">
+          <button className={styles.imagePreviewRemove} onClick={handleClearImage} type="button">
             <X size={16} />
           </button>
         )}
@@ -444,8 +144,6 @@ const ChatBot = () => {
   };
 
   // ─── Main Render ──────────────────────────────────────────────
-  const timeoutWarningThresholdMs = Math.max(0, (CHAT_TIMEOUT_WARNING_MINUTES || 0) * 60 * 1000);
-  const showTimeoutWarning = mode === 'agent' && agentJoined && !sessionTimedOut && remainingInactivityMs > 0 && remainingInactivityMs <= timeoutWarningThresholdMs;
   const remainingWarningSeconds = remainingInactivityMs ? Math.ceil(remainingInactivityMs / 1000) : 0;
 
   return (
@@ -483,7 +181,7 @@ const ChatBot = () => {
 
           {/* Messages Area */}
           <div className={styles.chatbotMessages}>
-            <div className={styles.chatTimestamp}>{currentTime}</div>
+            <div className={styles.chatTimestamp}>{new Date().toLocaleDateString([], { weekday: 'long', month: 'short', day: 'numeric' })}</div>
 
             {/* Agent Mode specific system messages */}
             {mode === 'agent' && agentWaiting && !agentJoined && (
@@ -536,7 +234,7 @@ const ChatBot = () => {
                       {item.options && (
                         <div className={styles.chatOptions}>
                           {item.options.map(opt => (
-                            <button key={opt} type="button" className={styles.chatOptionBtn} onClick={() => handleOption(opt)} disabled={isLoading}>{opt}</button>
+                            <button key={opt} type="button" className={styles.chatOptionBtn} onClick={() => handleOption(opt, focusSupportForm)} disabled={isLoading}>{opt}</button>
                           ))}
                         </div>
                       )}
@@ -544,14 +242,18 @@ const ChatBot = () => {
                         <div className={styles.chatOptions}>
                           {item.faqLinks.map(faq => (
                             <button key={faq.question} type="button" className={styles.chatOptionBtn} onClick={() => {
-                              setMessages(cur => [...cur, { role: 'user', text: faq.question }, { role: 'bot', text: faq.answer }]);
+                              setMessages(cur => [
+                                ...cur, 
+                                { role: 'user', text: faq.question, timestamp: new Date().toISOString() }, 
+                                { role: 'bot', text: faq.answer, timestamp: new Date().toISOString() }
+                              ]);
                             }}>
                               {faq.question} <ExternalLink size={14} />
                             </button>
                           ))}
                         </div>
                       )}
-                      <span className={styles.chatBubbleTime}>{currentTime}</span>
+                      <span className={styles.chatBubbleTime}>{formatMessageTime(item)}</span>
                     </div>
                   </div>
                 </div>
@@ -572,7 +274,7 @@ const ChatBot = () => {
 
             {/* Support Form UI */}
             {supportForm.active && mode === 'bot' && (
-              <form ref={supportFormRef} className={styles.supportFormCard} onSubmit={submitSupportForm}>
+              <form ref={supportFormRef} className={styles.supportFormCard} onSubmit={(e) => submitSupportForm(e)}>
                 <div className={styles.supportFormHeader}>
                   <div className={styles.supportFormHeaderIcon}><User size={18} /></div>
                   <div><h4>Customer Details</h4><p>Contact information.</p></div>
@@ -613,8 +315,8 @@ const ChatBot = () => {
           {attachError && <div className={styles.attachmentError}>{attachError}</div>}
           {showTimeoutWarning && <div className={styles.sessionWarning}>Session ending in {Math.floor(remainingWarningSeconds / 60)}:{String(remainingWarningSeconds % 60).padStart(2, '0')} due to inactivity.</div>}
 
-          <form className={styles.chatbotFooter} onSubmit={handleSubmit}>
-            <input ref={fileInputRef} type="file" accept={ACCEPTED_IMAGE_TYPES} className={styles.hiddenFileInput} onChange={handleFileSelect} />
+          <form className={styles.chatbotFooter} onSubmit={(e) => handleSubmit(e)}>
+            <input ref={fileInputRef} type="file" accept={ACCEPTED_IMAGE_TYPES} className={styles.hiddenFileInput} onChange={onFileChange} />
             <button className={`${styles.chatAttachBtn} ${canAttach && pendingImage ? styles.chatAttachBtnActive : ''}`} type="button" onClick={handleAttachClick} disabled={!canAttach || isUploading}>
               {canAttach ? <ImageIcon size={20} /> : <Paperclip size={20} />}
             </button>

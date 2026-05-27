@@ -3,10 +3,16 @@ import { smartSearchFaqs } from './smartSearch';
 
 const EMBEDDING_TABLE = 'faq_embeddings';
 const MIN_CONFIDENCE = 0.45;
-const SMART_DIRECT_HIT = 0.62;
+const SMART_DIRECT_HIT = 0.75; // Increased for higher accuracy on local matches
 
 function normalizeQueryText(query = '') {
-  return query.replace(/\s+/g, ' ').trim();
+  // Basic cleaning plus removing common conversational filler
+  return query
+    .toLowerCase()
+    .replace(/[^\w\s?]/g, ' ')
+    .replace(/\b(please|help|me|with|find|information|about|can|you|tell|show|looking|for|info|question)\b/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 function dedupeByFaqId(results = []) {
@@ -24,9 +30,9 @@ function dedupeByFaqId(results = []) {
 /**
  * Generate embedding via Supabase Edge Function (Gemini text-embedding-004)
  */
-async function generateEmbedding(text) {
+async function generateEmbedding(text, mode = 'document', title = null) {
   const { data, error } = await supabase.functions.invoke('get-embedding', {
-    body: { text },
+    body: { text, mode, title },
   });
   if (error) throw error;
   return data.embedding;
@@ -43,16 +49,17 @@ export const semanticSearchFaqs = async (query) => {
   try {
     const smartResults = await smartSearchFaqs(cleanQuery);
     if (smartResults && smartResults.length > 0 && smartResults[0].score >= SMART_DIRECT_HIT) {
-      console.log('Smart search hit:', smartResults[0].question);
+      console.log('High-confidence local hit:', smartResults[0].question);
       return dedupeByFaqId(smartResults).slice(0, 5).map(({ score, category, ...rest }) => rest);
     }
   } catch (err) {
-    console.warn('Smart search failed, moving to hybrid:', err);
+    // Intent not found or low confidence, proceeding to hybrid search
   }
 
   // Step 2: Hybrid Search (The database handles both Vectors and Keywords simultaneously)
   try {
-    const queryVector = await generateEmbedding(cleanQuery);
+    // Use the raw query for embedding to preserve semantic nuance
+    const queryVector = await generateEmbedding(query.trim(), 'query');
     
     // Call our new Postgres function
     const { data, error } = await supabase.rpc('hybrid_search_faq', {
@@ -70,9 +77,16 @@ export const semanticSearchFaqs = async (query) => {
       answer: m.answer,
       category: m.category, 
       score: m.similarity,
+      metadata: m.metadata || {}
     }));
 
-    return dedupeByFaqId(results).filter((r) => r.score >= MIN_CONFIDENCE);
+    const deduped = dedupeByFaqId(results);
+    
+    if (deduped.length > 0) console.log(`Hybrid search found ${deduped.length} matches. Top score: ${deduped[0].score}`);
+    
+    // Filter by confidence and sort by relevance
+    return deduped
+      .filter((r) => r.score >= MIN_CONFIDENCE);
 
   } catch (err) {
     console.error('Hybrid search failed:', err);
@@ -83,24 +97,23 @@ export const semanticSearchFaqs = async (query) => {
 /**
  * Generate AI response using RAG completion
  */
-export const generateAiResponse = async (query, matches) => {
+export const generateAiResponse = async (query, history = []) => {
   try {
-    if (matches.length === 0) {
-      return "I couldn't find relevant information in our knowledge base.";
+    if (!query || query.trim().length < 2) {
+      return "I'm here to help! How can I assist you with T.A Coin today?";
     }
-    const context = matches
-      .slice(0, 3)
-      .map((m) => `Q: ${m.question}\nA: ${String(m.answer || '').slice(0, 900)}`)
-      .join('\n\n');
 
-    const { data, error } = await supabase.functions.invoke('rag-completion', {
-      body: { query, context },
+    // Use the agentic support bot for all AI responses, as it handles routing
+    // for small talk, actions, and knowledge-based RAG.
+    const { data, error } = await supabase.functions.invoke('agentic-support-bot', {
+      body: { query, history },
     });
+    
     if (error) throw error;
     return data.text;
   } catch (err) {
-    console.error('LLM Generation Error:', err);
-    return matches[0]?.answer || "Unable to generate response. Please try again.";
+    console.error('Agentic Bot Generation Error:', err);
+    return "I'm sorry, I'm having trouble understanding or responding right now. Please try again later.";
   }
 };
 
@@ -122,11 +135,15 @@ export const populateVectorStore = async () => {
     let ok = 0, fail = 0;
     for (const faq of faqs) {
       try {
-        const textToEmbed = `Category: ${faq.category || ''}\nQuestion: ${faq.question}\nAnswer: ${faq.answer}\nKeywords: ${(faq.keywords || []).join(', ')}`;
-        const embedding = await generateEmbedding(textToEmbed);
-        const { error: insErr } = await supabase
-          .from(EMBEDDING_TABLE)
-          .upsert({ faq_id: faq.id, question: faq.question, answer: faq.answer, category: faq.category, embedding });
+        // Structured text helps the embedding model understand relationships
+        const keywords = Array.isArray(faq.keywords) ? faq.keywords.join(', ') : '';
+        const textToEmbed = `SUBJECT: ${faq.category || 'General'}\nQUESTION: ${faq.question}\nCONTEXT: ${keywords}\nFACTUAL_ANSWER: ${faq.answer}`;
+        
+        // Use the question as the 'title' for RETRIEVAL_DOCUMENT task type
+        const embedding = await generateEmbedding(textToEmbed, 'document', faq.question);
+        
+        const { error: insErr } = await supabase.from(EMBEDDING_TABLE).upsert({
+          faq_id: faq.id, question: faq.question, answer: faq.answer, category: faq.category, embedding });
         if (insErr) throw insErr;
         ok++;
       } catch (err) {
@@ -174,12 +191,14 @@ export const subscribeToFaqUpdates = (onUpdate) => {
         try {
           const { eventType, new: newFaq, old: oldFaq } = payload;
           if (eventType === 'INSERT' || eventType === 'UPDATE') {
-            const textToEmbed = `Category: ${newFaq.category || ''}\nQuestion: ${newFaq.question}\nAnswer: ${newFaq.answer}\nKeywords: ${(newFaq.keywords || []).join(', ')}`;
-            const embedding = await generateEmbedding(textToEmbed);
+            const keywords = Array.isArray(newFaq.keywords) ? newFaq.keywords.join(', ') : '';
+            const textToEmbed = `SUBJECT: ${newFaq.category || 'General'}\nQUESTION: ${newFaq.question}\nCONTEXT: ${keywords}\nFACTUAL_ANSWER: ${newFaq.answer}`;
+            
+            const embedding = await generateEmbedding(textToEmbed, 'document', newFaq.question);
             const { error } = await supabase.from(EMBEDDING_TABLE).upsert({
               faq_id: newFaq.id, question: newFaq.question, answer: newFaq.answer,
-              category: newFaq.category, embedding,
-            });
+              category: newFaq.category, embedding });
+
             if (error) throw error;
             onUpdate({ type: 'success', faq: newFaq });
           } else if (eventType === 'DELETE') {
@@ -195,6 +214,3 @@ export const subscribeToFaqUpdates = (onUpdate) => {
     .subscribe();
   return channel;
 };
-
-// Re-export smart search for direct use
-export { smartSearchFaqs } from './smartSearch';
