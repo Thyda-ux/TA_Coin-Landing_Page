@@ -1,29 +1,52 @@
 import { supabase } from './supabase';
 
 
+// Cross-channel cap: an agent can carry at most this many *active* chat
+// sessions across Telegram + Website Chatbot combined. Must stay in sync with
+// the dashboard project's MAX_ACTIVE_SESSIONS_PER_AGENT.
 const MAX_ACTIVE_SESSIONS_PER_AGENT = 5;
+
+// Allow-list of roles eligible for auto-assignment. Mirrors the dashboard's
+// SUPPORT_AGENT_ROLES — admins are intentionally excluded, they view but
+// never carry session load.
+const SUPPORT_AGENT_ROLES = [
+  'Customer Service Agent',
+  'Customer Support Agent',
+];
+
+// Idle-session timeout. The dashboard's processChatSessionTimeouts sweeper
+// reads metadata.expiresAt; without it widget-originated sessions would
+// never auto-close on inactivity.
+const SESSION_DURATION_MINUTES = 20;
+
+const getExpiryIso = () =>
+  new Date(Date.now() + SESSION_DURATION_MINUTES * 60 * 1000).toISOString();
 
 const findAvailableAgentForSession = async () => {
   const { data: agents, error: agentError } = await supabase
     .from('agents')
     .select('id, full_name, email, role, status')
-    .eq('status', 'Available');
+    .eq('status', 'Available')
+    .in('role', SUPPORT_AGENT_ROLES);
 
   if (agentError) throw agentError;
   if (!agents || agents.length === 0) return null;
 
+  // Count active sessions per agent without filtering by channel so Telegram
+  // + Website Chatbot share the same MAX_ACTIVE_SESSIONS_PER_AGENT bucket,
+  // matching the dashboard's logic.
   const { data: activeSessions, error: activeError } = await supabase
     .from('chat_sessions')
-    .select('id, agent_id')
+    .select('id, assigned_agent_id')
     .eq('status', 'active')
-    .not('agent_id', 'is', null);
+    .not('assigned_agent_id', 'is', null);
 
   if (activeError) throw activeError;
 
   const agentsWithCount = agents.map((agent) => ({
     ...agent,
     activeSessionCount: (activeSessions || []).filter(
-      (session) => session.agent_id === agent.id
+      (session) => session.assigned_agent_id === agent.id
     ).length,
   }));
 
@@ -49,17 +72,35 @@ const findAvailableAgentForSession = async () => {
 export async function createChatSession(userId, metadata = {}) {
   const selectedAgent = await findAvailableAgentForSession();
 
+  const initialExpiry = selectedAgent ? getExpiryIso() : null;
+  const nowIso = new Date().toISOString();
+
   const { data, error } = await supabase
     .from('chat_sessions')
     .insert({
       user_id: userId,
+      channel: 'Website Chatbot',
       status: selectedAgent ? 'active' : 'waiting',
-      agent_id: selectedAgent?.id || null,
+      // Dashboard scopes session visibility on assigned_agent_id; the legacy
+      // agent_id column is no longer authoritative.
+      assigned_agent_id: selectedAgent?.id || null,
+      assigned_agent_name: selectedAgent?.full_name || null,
+      // First-class timer columns. expires_at is NULL while the session
+      // sits in the waiting queue and gets stamped when the dashboard's
+      // autoAssignWaitingChatSessions picks it up.
+      expires_at: initialExpiry,
+      warning_sent_at: null,
       metadata: {
         ...metadata,
         autoAssigned: Boolean(selectedAgent),
         assignedAgentName: selectedAgent?.full_name || null,
         assignedAgentEmail: selectedAgent?.email || null,
+        channel: 'Website Chatbot',
+        // Mirror of the real columns above; the dashboard's idle-session
+        // sweeper reads from metadata today.
+        expiresAt: initialExpiry,
+        warningSentAt: null,
+        lastActivityAt: nowIso,
       },
     })
     .select()
@@ -174,6 +215,48 @@ export async function sendMessage(sessionId, senderRole, senderId, content, atta
     .single();
 
   if (error) throw error;
+
+  // When the customer sends a message, push out the inactivity timer and
+  // stamp last_customer_message_at so the dashboard's idle-session sweeper
+  // doesn't auto-close an actively-chatting session. We update both the
+  // real columns and the metadata duplicates because the dashboard reads
+  // timer state from metadata today; the real columns are kept current for
+  // future SQL-side queries / reports.
+  if (senderRole === 'user' || senderRole === 'customer') {
+    const nowIso = new Date().toISOString();
+    const refreshedExpiry = getExpiryIso();
+
+    // Read existing metadata so we preserve unrelated keys
+    // (assignedAgentName, channel, autoAssigned, etc.).
+    const { data: existing } = await supabase
+      .from('chat_sessions')
+      .select('metadata')
+      .eq('id', sessionId)
+      .single();
+
+    const existingMetadata =
+      existing?.metadata && typeof existing.metadata === 'object'
+        ? existing.metadata
+        : {};
+
+    await supabase
+      .from('chat_sessions')
+      .update({
+        last_message: content || existingMetadata.lastMessage || null,
+        last_customer_message_at: nowIso,
+        expires_at: refreshedExpiry,
+        warning_sent_at: null,
+        updated_at: nowIso,
+        metadata: {
+          ...existingMetadata,
+          expiresAt: refreshedExpiry,
+          warningSentAt: null,
+          lastActivityAt: nowIso,
+        },
+      })
+      .eq('id', sessionId);
+  }
+
   return data;
 }
 

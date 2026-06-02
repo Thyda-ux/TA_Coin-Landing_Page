@@ -264,7 +264,17 @@ export const useChatSession = (isOpen) => {
 
     setIsLoading(true);
     try {
-      await connectToAgent(summary);
+      // Hand the structured form fields to the connection layer so the agent
+      // dashboard can show them in its Customer Information panel. The
+      // summary text is still sent as the first transcript message; this is
+      // additional metadata, not a replacement.
+      await connectToAgent(summary, {
+        customerName: normalized.name || '',
+        email: normalized.email || '',
+        phone: normalized.phone || '',
+        issueType: normalized.issueType || '',
+        issueDescription: normalized.issueDetails || '',
+      });
       resetSupportForm();
     } catch (err) {
       setMessages((prev) => [...prev, { role: 'bot', text: `Support request failed: ${err.message}`, timestamp: new Date().toISOString() }]);

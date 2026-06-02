@@ -92,9 +92,16 @@ export const useAgentConnection = ({ inactivityTimeoutMinutes = DEFAULT_INACTIVI
   }, [clearInactivityTimer]);
 
   /**
-   * Start a new agent chat session
+   * Start a new agent chat session.
+   *
+   * @param {string} description - Free-form summary sent as the first user
+   *   message in the transcript. Typically the support-form summary.
+   * @param {Object} [customerInfo] - Structured fields from the pre-chat form.
+   *   These are written to the session metadata so the agent dashboard can
+   *   display them in the Customer Information panel without parsing text.
+   *   Pass: { customerName, email, phone, issueType, issueDescription, accountId }.
    */
-  const connectToAgent = useCallback(async (description = '') => {
+  const connectToAgent = useCallback(async (description = '', customerInfo = {}) => {
     try {
       setIsWaiting(true);
       setMessages([]);
@@ -106,9 +113,31 @@ export const useAgentConnection = ({ inactivityTimeoutMinutes = DEFAULT_INACTIVI
         description,
         userAgent: navigator.userAgent,
         page: window.location.pathname,
+        // Structured customer fields — the dashboard's mapTelegramSession
+        // reads these (metadata.customerName, metadata.email, etc.) to
+        // populate the Customer Information panel.
+        customerName: customerInfo.customerName || '',
+        email: customerInfo.email || '',
+        phone: customerInfo.phone || '',
+        issueType: customerInfo.issueType || '',
+        issueDescription: customerInfo.issueDescription || '',
+        accountId: customerInfo.accountId || '',
       });
 
       setSession(newSession);
+
+      // If an agent was auto-assigned at creation time, the session is already
+      // in 'active' state and we have an assigned_agent_id. There won't be a
+      // subsequent UPDATE event to flip us out of waiting, so do it here too.
+      const initiallyHasAgent = Boolean(
+        newSession?.assigned_agent_id || newSession?.agent_id
+      );
+      if (newSession?.status === 'active' && initiallyHasAgent) {
+        setAgentJoined(true);
+        setIsWaiting(false);
+        setIsConnected(true);
+        resetInactivityTimer(newSession);
+      }
 
       // Send the initial description as first message
       if (description) {
@@ -127,7 +156,13 @@ export const useAgentConnection = ({ inactivityTimeoutMinutes = DEFAULT_INACTIVI
       // Subscribe to session status changes (agent joining, session closing)
       statusSubRef.current = subscribeToSessionStatus(newSession.id, (updatedSession) => {
         setSession(updatedSession);
-        if (updatedSession.status === 'active' && updatedSession.agent_id) {
+        // The dashboard now writes assigned_agent_id; the legacy agent_id
+        // column is no longer populated. Accept either so this widget keeps
+        // working with both pre- and post-migration sessions.
+        const hasAssignedAgent = Boolean(
+          updatedSession.assigned_agent_id || updatedSession.agent_id
+        );
+        if (updatedSession.status === 'active' && hasAssignedAgent) {
           setAgentJoined(true);
           setIsWaiting(false);
           setIsConnected(true);
