@@ -12,6 +12,47 @@ import {
 } from '../hooks/useChatSession';
 import styles from './styles/ChatBot.module.css';
 
+const URL_RE = /(https?:\/\/[^\s)]+)/g;
+
+const renderInline = (line, keyBase) => {
+  const tokens = [];
+  const re = /(\*\*([^*]+)\*\*|\*([^*]+)\*)/g;
+  let last = 0;
+  let m;
+  let i = 0;
+  const pushPlain = (text) => {
+    if (!text) return;
+    let j = 0;
+    text.replace(URL_RE, (url, _g, idx) => {
+      if (idx > j) tokens.push(text.slice(j, idx));
+      tokens.push(<a key={`${keyBase}-a-${i++}`} href={url} target="_blank" rel="noopener noreferrer">{url}</a>);
+      j = idx + url.length;
+      return url;
+    });
+    if (j < text.length) tokens.push(text.slice(j));
+  };
+  while ((m = re.exec(line)) !== null) {
+    if (m.index > last) pushPlain(line.slice(last, m.index));
+    if (m[2] != null) tokens.push(<strong key={`${keyBase}-b-${i++}`}>{m[2]}</strong>);
+    else if (m[3] != null) tokens.push(<em key={`${keyBase}-i-${i++}`}>{m[3]}</em>);
+    last = m.index + m[0].length;
+  }
+  if (last < line.length) pushPlain(line.slice(last));
+  return tokens;
+};
+
+const renderMarkdown = (text) => {
+  if (text == null) return null;
+  const str = String(text);
+  const lines = str.split(/\r?\n/);
+  return lines.map((line, idx) => (
+    <React.Fragment key={`md-${idx}`}>
+      {renderInline(line, `md-${idx}`)}
+      {idx < lines.length - 1 ? <br /> : null}
+    </React.Fragment>
+  ));
+};
+
 const ChatBot = () => {
   const [isOpen, setIsOpen] = useState(false);
   const messagesEndRef = useRef(null);
@@ -218,8 +259,10 @@ const ChatBot = () => {
                     <div className={styles.chatBubble}>
                       {item.attachment_url ? (
                         <>{item.content !== '[Image]' && item.content}{renderAttachment(item.attachment_url)}</>
-                      ) : (
+                      ) : isUser ? (
                         item.text || item.content
+                      ) : (
+                        renderMarkdown(item.text || item.content)
                       )}
                       
                       {/* Interactive Bot Options */}

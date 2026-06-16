@@ -27,12 +27,20 @@ export function validateSupportForm(form) {
   if (!normalized.issueType) errors.issueType = 'Issue type is required.';
   // issueDetails is optional by request
 
-  if (normalized.name && !/^[A-Za-z\s]{2,80}$/.test(normalized.name)) {
-    errors.name = 'Name should contain letters only (no numbers or symbols).';
+  // Allow Unicode letters/marks (covers Khmer, Latin-accented, etc.),
+  // spaces, apostrophes, hyphens, and periods. Required for legitimate
+  // names like "O'Connor", "Jean-Luc", or Khmer script.
+  if (normalized.name && !/^[\p{L}\p{M}'\-.\s]{2,80}$/u.test(normalized.name)) {
+    errors.name = 'Please enter a valid name.';
   }
 
-  if (normalized.phone && !/^[0-9]{7,30}$/.test(normalized.phone)) {
-    errors.phone = 'Phone number should contain digits only.';
+  // Phone: allow leading +, digits, spaces, parentheses, hyphens, and dots.
+  // Requires at least 7 digits total.
+  if (normalized.phone) {
+    const digitCount = (normalized.phone.match(/\d/g) || []).length;
+    if (!/^[+\d\s().-]{7,30}$/.test(normalized.phone) || digitCount < 7) {
+      errors.phone = 'Please enter a valid phone number.';
+    }
   }
 
   if (normalized.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized.email)) {
@@ -57,24 +65,17 @@ export function buildSupportSummary(form) {
   ].join('\n');
 }
 
-export async function createSupportTicket(supabaseClient, form, extra = {}) {
-  const payload = {
-    customer_name: form.name,
-    email: form.email,
-    phone_number: form.phone,
-    issue_type: form.issueType,
-    issue_details: form.issueDetails,
-    source: extra.source || 'chatbot',
-    status: extra.status || 'new',
-    chat_user_id: extra.chatUserId || null,
-    metadata: extra.metadata || {},
-  };
-
-  const { data, error } = await supabaseClient
-    .from('support_tickets')
-    .insert(payload)
-    .select('id, ticket_no')
-    .single();
+export async function createSupportTicket(supabaseClient, form) {
+  // The RPC validates input server-side, attaches auth.uid() as chat_user_id,
+  // and enforces a per-user rate limit. The legacy `extra.chatUserId`
+  // argument is gone — the server determines the user from the auth context.
+  const { data, error } = await supabaseClient.rpc('create_support_ticket', {
+    p_customer_name: form.name,
+    p_email: form.email,
+    p_phone: form.phone,
+    p_issue_type: form.issueType,
+    p_issue_details: form.issueDetails || '',
+  });
 
   if (error) throw error;
   return data;

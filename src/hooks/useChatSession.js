@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { askSupportBot } from '../lib/vectorService';
 import { matchPredefinedResponse } from '../lib/predefinedResponses';
+import { smartSearchFaqs, HIGH_CONFIDENCE } from '../lib/smartSearch';
 import { useAgentConnection } from './useAgentConnection';
 import { validateSupportForm, buildSupportSummary, createSupportTicket } from '../lib/supportIntake';
 
@@ -85,7 +86,6 @@ export const useChatSession = (isOpen) => {
     sessionTimedOut,
     inactivityDeadline,
     messages: agentMessages,
-    userId: chatUserId,
   } = useAgentConnection({ inactivityTimeoutMinutes: CHAT_INACTIVITY_TIMEOUT_MINUTES });
 
   const clearPendingImage = useCallback(() => {
@@ -248,9 +248,9 @@ export const useChatSession = (isOpen) => {
 
     let ticketInfo = null;
     try {
-      ticketInfo = await createSupportTicket(supabase, normalized, { source: 'chatbot', chatUserId });
+      ticketInfo = await createSupportTicket(supabase, normalized);
     } catch (ticketErr) {
-      console.warn("Could not save ticket record:", ticketErr);
+      if (import.meta.env?.DEV) console.warn('Could not save ticket record:', ticketErr);
     }
 
     const summary = ticketInfo
@@ -380,31 +380,69 @@ export const useChatSession = (isOpen) => {
     setIsLoading(true);
 
     try {
+      // Fast-path: deterministic intent/keyword match against the in-memory
+      // FAQ cache. Skips the Gemini round-trip entirely for the ~50 known
+      // intents (free, instant, deterministic).
+      const hits = await smartSearchFaqs(cleanMessage);
+      if (hits.length > 0 && hits[0].score >= HIGH_CONFIDENCE) {
+        const top = hits[0];
+        const related = hits.slice(1, 4).map(h => ({
+          question: h.question,
+          answer: h.answer,
+        }));
+        setMessages((current) => [
+          ...current,
+          {
+            role: 'bot',
+            text: top.answer,
+            timestamp: new Date().toISOString(),
+            faqLinks: related.length > 0 ? related : undefined,
+          },
+        ]);
+        return;
+      }
+
+      // Fallback: RAG edge function for novel/ambiguous queries
       const chatHistory = updatedMessages.slice(-6).map(m => ({ role: m.role, text: m.text }));
       const data = await askSupportBot(cleanMessage, chatHistory);
+
+      // Server-reported low confidence → offer agent escalation instead of
+      // confidently presenting a weak match.
+      if (data.confidence != null && data.confidence < 0.6) {
+        setMessages((current) => [
+          ...current,
+          {
+            role: 'bot',
+            text: data.text || "I couldn't find a clear answer in our FAQs. Want me to connect you with an agent, or browse FAQs by category?",
+            timestamp: new Date().toISOString(),
+            options: ['FAQs', 'Connect to Agent'],
+          },
+        ]);
+        return;
+      }
 
       if (data.action === "TRIGGER_ACCOUNT_UI") {
         setMessages((current) => [
           ...current,
-          { 
-            role: 'bot', 
-            text: data.text, 
-            timestamp: new Date().toISOString(), 
-            options: ['Go to Account Settings'] 
+          {
+            role: 'bot',
+            text: data.text,
+            timestamp: new Date().toISOString(),
+            options: ['Go to Account Settings'],
           },
         ]);
       } else {
         setMessages((current) => [
           ...current,
-          { 
-            role: 'bot', 
-            text: data.text, 
-            timestamp: new Date().toISOString() 
+          {
+            role: 'bot',
+            text: data.text,
+            timestamp: new Date().toISOString(),
           },
         ]);
       }
     } catch (error) {
-      console.error('Chat error:', error);
+      if (import.meta.env?.DEV) console.error('Chat error:', error);
       setMessages((current) => [
         ...current,
         {

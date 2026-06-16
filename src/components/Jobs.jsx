@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ChevronDown, ChevronUp, Users, Briefcase, Search, CheckCircle, MapPin, Mail, MessageCircle, X, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { sanitizeRichHtml } from '../lib/sanitizeHtml';
 import styles from './styles/Jobs.module.css';
 
 export default function Jobs() {
@@ -25,8 +26,6 @@ export default function Jobs() {
         return;
       }
 
-      console.log('Fetching jobs from Supabase...');
-      // Fetching all published jobs. We check for both lowercase and capitalized just in case.
       const { data, error } = await supabase
         .from('jobs')
         .select('*')
@@ -34,19 +33,15 @@ export default function Jobs() {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Supabase fetch error details:', {
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          code: error.code
-        });
+        if (import.meta.env?.DEV) {
+          console.error('Supabase fetch error:', error);
+        }
         throw error;
       }
 
-      console.log('Jobs data received successfully:', data);
       setJobs(data || []);
     } catch (err) {
-      console.error('Error in fetchJobs execution:', err);
+      if (import.meta.env?.DEV) console.error('fetchJobs failed:', err);
     } finally {
       setIsLoading(false);
     }
@@ -149,7 +144,7 @@ export default function Jobs() {
                           </h3>
                           <div className={styles.richTextContainer}>
                             {typeof job.key_accountabilities === 'string' && job.key_accountabilities.trim().startsWith('<') ? (
-                              <div dangerouslySetInnerHTML={{ __html: job.key_accountabilities }} />
+                              <div dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(job.key_accountabilities) }} />
                             ) : (
                               <ul style={{ margin: 0 }}>
                                 {(Array.isArray(job.key_accountabilities) ? job.key_accountabilities : (job.key_accountabilities?.split('\n') || [])).map((item, i) => (
@@ -167,7 +162,7 @@ export default function Jobs() {
                           </h3>
                           <div className={styles.richTextContainer}>
                             {typeof job.knowledge_requirements === 'string' && job.knowledge_requirements.trim().startsWith('<') ? (
-                              <div dangerouslySetInnerHTML={{ __html: job.knowledge_requirements }} />
+                              <div dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(job.knowledge_requirements) }} />
                             ) : (
                               <ul style={{ margin: 0 }}>
                                 {(Array.isArray(job.knowledge_requirements) ? job.knowledge_requirements : (job.knowledge_requirements?.split('\n') || [])).map((item, i) => (
@@ -185,7 +180,7 @@ export default function Jobs() {
                           </h3>
                           <div className={styles.richTextContainer}>
                             {typeof job.working_conditions === 'string' && job.working_conditions.trim().startsWith('<') ? (
-                              <div dangerouslySetInnerHTML={{ __html: job.working_conditions }} />
+                              <div dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(job.working_conditions) }} />
                             ) : (
                               <ul style={{ margin: 0 }}>
                                 {(Array.isArray(job.working_conditions) ? job.working_conditions : (job.working_conditions?.split('\n') || [])).map((item, i) => (
@@ -247,7 +242,7 @@ export default function Jobs() {
                 </div>
               </a>
 
-              <a href="https://t.me/+85589555672" target="_blank" rel="noreferrer" className={styles.contactMethodLink}>
+              <a href="https://t.me/+85589555672" target="_blank" rel="noopener noreferrer" className={styles.contactMethodLink}>
                 <MessageCircle size={24} color="var(--color-secondary-dark)" />
                 <div className={styles.contactMethodText}>
                   <div className={styles.contactMethodLabel}>Phone / Telegram Contact</div>

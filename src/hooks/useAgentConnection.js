@@ -5,7 +5,7 @@ import {
   getSessionMessages,
   subscribeToSessionMessages,
   subscribeToSessionStatus,
-  getOrCreateUserId,
+  getCurrentUserId,
   uploadChatImage,
   closeSessionWithTimeout,
 } from '../lib/realtimeChat';
@@ -37,7 +37,7 @@ export const useAgentConnection = ({ inactivityTimeoutMinutes = DEFAULT_INACTIVI
   const messageSubRef = useRef(null);
   const statusSubRef = useRef(null);
   const inactivityTimerRef = useRef(null);
-  const userId = useRef(getOrCreateUserId());
+  const userIdRef = useRef(null);
   const timeoutMinutesRef = useRef(inactivityTimeoutMinutes);
 
   // Keep the ref in sync if the prop changes
@@ -108,8 +108,11 @@ export const useAgentConnection = ({ inactivityTimeoutMinutes = DEFAULT_INACTIVI
       setAgentJoined(false);
       setSessionTimedOut(false);
 
-      // Create session in Supabase
-      const newSession = await createChatSession(userId.current, {
+      // Create session in Supabase via the SECURITY DEFINER RPC.
+      // The server picks the agent, posts the system welcome, and inserts
+      // the initial user message — the client doesn't pass a user_id
+      // because the RPC uses auth.uid().
+      const newSession = await createChatSession({
         description,
         userAgent: navigator.userAgent,
         page: window.location.pathname,
@@ -123,6 +126,9 @@ export const useAgentConnection = ({ inactivityTimeoutMinutes = DEFAULT_INACTIVI
         issueDescription: customerInfo.issueDescription || '',
         accountId: customerInfo.accountId || '',
       });
+
+      // Cache the auth uid so refs/return value stay populated for callers.
+      try { userIdRef.current = await getCurrentUserId(); } catch { /* ignore */ }
 
       setSession(newSession);
 
@@ -139,10 +145,8 @@ export const useAgentConnection = ({ inactivityTimeoutMinutes = DEFAULT_INACTIVI
         resetInactivityTimer(newSession);
       }
 
-      // Send the initial description as first message
-      if (description) {
-        await sendMessage(newSession.id, 'user', userId.current, description);
-      }
+      // Note: the RPC already inserted the initial user message when a
+      // non-empty `description` was passed in `metadata.description`.
 
       // Subscribe to new messages in this session
       messageSubRef.current = subscribeToSessionMessages(newSession.id, (msg) => {
@@ -200,11 +204,12 @@ export const useAgentConnection = ({ inactivityTimeoutMinutes = DEFAULT_INACTIVI
       return;
     }
     try {
-      await sendMessage(session.id, 'user', userId.current, text);
-      // Reset inactivity timer ΓÇö user is active
+      // sender_role/sender_id are determined server-side from auth.uid()
+      await sendMessage(session.id, 'user', null, text);
+      // Reset inactivity timer — user is active
       resetInactivityTimer(session);
     } catch (err) {
-      console.error('Failed to send message:', err);
+      if (import.meta.env?.DEV) console.error('Failed to send message:', err);
       throw err;
     }
   }, [session, resetInactivityTimer]);
@@ -221,12 +226,12 @@ export const useAgentConnection = ({ inactivityTimeoutMinutes = DEFAULT_INACTIVI
     }
     try {
       const imageUrl = await uploadChatImage(file, session.id);
-      await sendMessage(session.id, 'user', userId.current, '[Image]', imageUrl);
-      // Reset inactivity timer ΓÇö user is active
+      await sendMessage(session.id, 'user', null, '[Image]', imageUrl);
+      // Reset inactivity timer — user is active
       resetInactivityTimer(session);
       return imageUrl;
     } catch (err) {
-      console.error('Failed to send image:', err);
+      if (import.meta.env?.DEV) console.error('Failed to send image:', err);
       throw err;
     }
   }, [session, resetInactivityTimer]);
@@ -270,6 +275,6 @@ export const useAgentConnection = ({ inactivityTimeoutMinutes = DEFAULT_INACTIVI
     inactivityDeadline,
     messages,
     session,
-    userId: userId.current,
+    userId: userIdRef.current,
   };
 };

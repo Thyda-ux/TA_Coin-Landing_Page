@@ -1,21 +1,37 @@
 import { supabase } from './supabase';
 import { INTENT_MAP, SYNONYM_MAP, STOP_WORDS } from './searchConfig';
 
-const MIN_CONFIDENCE = 0.45;
- 
+export const MIN_CONFIDENCE = 0.25;
+export const HIGH_CONFIDENCE = 0.7;
+
+const SYNONYM_REVERSE = (() => {
+  const m = new Map();
+  for (const [canonical, syns] of Object.entries(SYNONYM_MAP)) {
+    for (const s of syns) {
+      if (!m.has(s)) m.set(s, []);
+      m.get(s).push(canonical);
+    }
+  }
+  return m;
+})();
+
+export const escapeRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
 export const extractKeywords = (text) => {
-  return text.toLowerCase().replace(/[^\w\s.]/g, ' ').replace(/\bt\.?a\.?\s*coin\b/gi, 'tacoin')
-    .split(/\s+/).filter(w => w.length > 1 && !STOP_WORDS.has(w)).slice(0, 10);
+  return String(text || '').toLowerCase()
+    .replace(/\bt\.?a\.?\s*coin\b/gi, 'tacoin')
+    .replace(/[^\w\s]/g, ' ')
+    .split(/\s+/)
+    .filter(w => w.length > 1 && !STOP_WORDS.has(w))
+    .slice(0, 10);
 };
 
 export const expandWithSynonyms = (keywords) => {
   const expanded = new Set(keywords);
-  keywords.forEach(word => {
-    if (SYNONYM_MAP[word]) { SYNONYM_MAP[word].forEach(s => expanded.add(s)); }
-    Object.entries(SYNONYM_MAP).forEach(entry => {
-      if (entry[1].includes(word)) expanded.add(entry[0]);
-    });
-  });
+  for (const word of keywords) {
+    SYNONYM_MAP[word]?.forEach(s => expanded.add(s));
+    SYNONYM_REVERSE.get(word)?.forEach(c => expanded.add(c));
+  }
   return Array.from(expanded);
 };
 
@@ -64,12 +80,16 @@ const loadFaqCache = async () => {
 
 const detectIntent = (query) => {
   const norm = query.toLowerCase().replace(/[^\w\s]/g, ' ').trim();
+  const normPadded = ' ' + norm + ' ';
   const matches = [];
   INTENT_MAP.forEach(intent => {
     let best = 0;
     intent.patterns.forEach(pattern => {
-      if (norm.includes(pattern)) {
+      const padded = ' ' + pattern + ' ';
+      if (normPadded.includes(padded)) {
         best = Math.max(best, 0.7 + (pattern.length / Math.max(norm.length, 1)) * 0.3);
+      } else if (norm.includes(pattern) && pattern.length >= 5) {
+        best = Math.max(best, 0.68);
       } else if (pattern.includes(norm) && norm.length > 3) {
         best = Math.max(best, 0.65);
       }
@@ -110,7 +130,9 @@ export const smartSearchFaqs = async (query) => {
       if (faq) { results.push({ id: faq.id, question: faq.question, answer: faq.answer, category: faq.category, score: intent.score || 0.95 }); }
     });
     if (results.length > 0) {
-      console.log('Intent: ' + intents[0].intent + ' (' + intents[0].score + ')');
+      if (import.meta.env?.DEV) {
+        console.log('Intent: ' + intents[0].intent + ' (' + intents[0].score + ')');
+      }
       return results;
     }
   }

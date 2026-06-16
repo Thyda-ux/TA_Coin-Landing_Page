@@ -4,6 +4,7 @@ import { Calendar } from 'lucide-react';
 import styles from './styles/NewsDetail.module.css';
 
 import { ALL_NEWS_ITEMS } from '../data/newsData';
+import { sanitizeRichHtml } from '../lib/sanitizeHtml';
 
 export default function NewsDetail() {
   const { id } = useParams();
@@ -67,9 +68,9 @@ export default function NewsDetail() {
           />
         </div>
 
-        <div 
+        <div
           className={styles.articleContent}
-          dangerouslySetInnerHTML={{ __html: newsItem.content }}
+          dangerouslySetInnerHTML={{ __html: sanitizeRichHtml(newsItem.content) }}
         />
 
         {/* Explore Other News Section */}
