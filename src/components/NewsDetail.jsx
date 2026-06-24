@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Calendar } from 'lucide-react';
 import styles from './styles/NewsDetail.module.css';
@@ -7,6 +8,7 @@ import { ALL_NEWS_ITEMS } from '../data/newsData';
 import { sanitizeRichHtml } from '../lib/sanitizeHtml';
 
 export default function NewsDetail() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -20,10 +22,10 @@ export default function NewsDetail() {
     return (
       <div className={styles.pageWrapper}>
         <div className={styles.detailContainer}>
-          <h2 className={styles.newsTitle}>News item not found</h2>
+          <h2 className={styles.newsTitle}>{t('newsDetail.notFound')}</h2>
           <div className={styles.buttonContainer}>
             <button className={styles.seeAllBtn} onClick={() => navigate('/news')}>
-              See all News
+              {t('newsDetail.seeAll')}
             </button>
           </div>
         </div>
@@ -75,7 +77,7 @@ export default function NewsDetail() {
 
         {/* Explore Other News Section */}
         <div className={styles.relatedSection}>
-          <h2 className={styles.exploreTitle}>Explore Other News</h2>
+          <h2 className={styles.exploreTitle}>{t('newsDetail.explore')}</h2>
           
           <div className={styles.relatedGrid}>
             {exploreNews.map((item) => (
@@ -118,7 +120,7 @@ export default function NewsDetail() {
 
           <div className={styles.buttonContainer}>
             <button className={styles.seeAllBtn} onClick={() => navigate('/news')}>
-              See all News
+              {t('newsDetail.seeAll')}
             </button>
           </div>
         </div>

@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Menu, X } from 'lucide-react';
 import logo from '../assets/T.A Coin Logo.png';
+import LanguageSwitcher from './LanguageSwitcher';
 import styles from './styles/Navbar.module.css';
 
 export default function Navbar() {
+  const { t } = useTranslation();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -16,12 +19,12 @@ export default function Navbar() {
   }, []);
 
   const navLinks = [
-    { name: 'About', href: '/#about' },
-    { name: 'Story', href: '/#story' },
-    { name: 'Why Us', href: '/#why-us' },
-    { name: 'Sustainability', href: '/#sustainability' },
-    { name: 'Careers', href: '/#careers' },
-    { name: 'Contact Us', href: '/#contact-us' },
+    { name: t('nav.about'), href: '/#about' },
+    { name: t('nav.story'), href: '/#story' },
+    { name: t('nav.whyUs'), href: '/#why-us' },
+    { name: t('nav.sustainability'), href: '/#sustainability' },
+    { name: t('nav.careers'), href: '/#careers' },
+    { name: t('nav.contactUs'), href: '/#contact-us' },
   ];
 
   return (
@@ -39,7 +42,7 @@ export default function Navbar() {
         <div className={styles.desktopNav}>
           <ul className={styles.navList}>
             {navLinks.map((link) => (
-              <li key={link.name}>
+              <li key={link.href}>
                 <a
                   href={link.href}
                   className={styles.navLink}
@@ -49,7 +52,8 @@ export default function Navbar() {
               </li>
             ))}
           </ul>
-          <a href="https://app.tacointrade.com/" target="_self" rel="noopener noreferrer" className={`btn btn-primary ${styles.launchBtn}`}>Launch App</a>
+          <LanguageSwitcher />
+          <a href="https://app.tacointrade.com/" target="_self" rel="noopener noreferrer" className={`btn btn-primary ${styles.launchBtn}`}>{t('nav.launchApp')}</a>
         </div>
 
         {/* Mobile Nav Toggle */}
@@ -66,7 +70,7 @@ export default function Navbar() {
         <div className={`glass ${styles.mobileMenu}`}>
           {navLinks.map((link) => (
             <a
-              key={link.name}
+              key={link.href}
               href={link.href}
               className={styles.mobileNavLink}
               onClick={() => setIsMobileMenuOpen(false)}
@@ -74,7 +78,8 @@ export default function Navbar() {
               {link.name}
             </a>
           ))}
-          <a href="https://app.tacointrade.com/" target="_self" rel="noopener noreferrer" className={`btn btn-primary ${styles.mobileLaunchBtn}`}>Launch App</a>
+          <LanguageSwitcher variant="mobile" />
+          <a href="https://app.tacointrade.com/" target="_self" rel="noopener noreferrer" className={`btn btn-primary ${styles.mobileLaunchBtn}`}>{t('nav.launchApp')}</a>
         </div>
       )}
     </nav>

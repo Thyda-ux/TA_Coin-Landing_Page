@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { Phone, Mail, MapPin, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Icon } from '@iconify/react';
@@ -8,20 +9,21 @@ import appStore from '../assets/app-store.png';
 import styles from './styles/Footer.module.css';
 
 export default function Footer() {
+  const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
 
   const quickLinks = [
-    { name: 'About', href: '/#about' },
-    { name: 'Story', href: '/#story' },
-    { name: 'Why Us', href: '/#why-us' },
-    { name: 'Sustainability', href: '/#sustainability' },
-    { name: 'Careers', href: '/#careers' }
+    { name: t('nav.about'), href: '/#about' },
+    { name: t('nav.story'), href: '/#story' },
+    { name: t('nav.whyUs'), href: '/#why-us' },
+    { name: t('nav.sustainability'), href: '/#sustainability' },
+    { name: t('nav.careers'), href: '/#careers' }
   ];
 
   const legalLinks = [
-    { name: 'Privacy Policy', href: '/privacy-policy' },
-    { name: 'Terms of Use', href: '/terms-of-use' },
-    { name: 'Disclaimer', href: '/disclaimer' }
+    { name: t('footer.privacyPolicy'), href: '/privacy-policy' },
+    { name: t('footer.termsOfUse'), href: '/terms-of-use' },
+    { name: t('footer.disclaimer'), href: '/disclaimer' }
   ];
 
   return (
@@ -35,10 +37,10 @@ export default function Footer() {
               <div className={styles.logoWrapper}>
                 <img src={logo} alt="Tacoin Logo" className={styles.brandLogo} />
               </div>
-              <span className={styles.brandText}>T.A COIN CO., LTD.</span>
+              <span className={styles.brandText}>{t('footer.brand')}</span>
             </div>
             <p className={styles.brandDesc}>
-              Innovating local investment products and creating market confidence to surge capital inflows to Cambodia.
+              {t('footer.brandDesc')}
             </p>
             <div className={styles.socialLinks}>
               <a href="#" className={styles.socialIcon} title="Facebook">
@@ -55,10 +57,10 @@ export default function Footer() {
 
           {/* 2. Quick Links */}
           <div className={styles.column}>
-            <h4 className={styles.sectionHeading}>Quick Links</h4>
+            <h4 className={styles.sectionHeading}>{t('footer.quickLinks')}</h4>
             <ul className={styles.linkList}>
               {quickLinks.map((link) => (
-                <li key={link.name}>
+                <li key={link.href}>
                   <a href={link.href} className={styles.quickLink}>
                     <span className={styles.arrow}>→</span> {link.name}
                   </a>
@@ -69,28 +71,28 @@ export default function Footer() {
 
           {/* 3. Contacts Us */}
           <div className={styles.column}>
-            <h4 className={styles.sectionHeading}>Contacts Us</h4>
+            <h4 className={styles.sectionHeading}>{t('footer.contactsUs')}</h4>
             <div className={styles.contactList}>
               <div className={styles.contactItem}>
                 <Phone size={20} className={styles.contactIcon} />
                 <div className={styles.contactInfo}>
-                  <span className={styles.contactLabel}>Hotline</span>
+                  <span className={styles.contactLabel}>{t('footer.hotline')}</span>
                   <span className={styles.contactValue}>071 345 8888</span>
                 </div>
               </div>
               <div className={styles.contactItem}>
                 <Mail size={20} className={styles.contactIcon} />
                 <div className={styles.contactInfo}>
-                  <span className={styles.contactLabel}>Email</span>
+                  <span className={styles.contactLabel}>{t('footer.email')}</span>
                   <span className={styles.contactValue}>customersupport@tacointrade.com</span>
                 </div>
               </div>
               <div className={styles.contactItem}>
                 <MapPin size={24} className={styles.contactIcon} />
                 <div className={styles.contactInfo}>
-                  <span className={styles.contactLabel}>Address</span>
+                  <span className={styles.contactLabel}>{t('footer.address')}</span>
                   <span className={styles.addressValue}>
-                    Canadia Tower, 3rd Floor, No. 315, Ang Duong Street (Corner of Monivong Blvd), Phnom Penh, Cambodia
+                    {t('footer.addressValue')}
                   </span>
                 </div>
               </div>
@@ -99,19 +101,19 @@ export default function Footer() {
 
           {/* 4. Support Hours */}
           <div className={styles.column}>
-            <h4 className={styles.sectionHeading}>Support Hours</h4>
+            <h4 className={styles.sectionHeading}>{t('footer.supportHours')}</h4>
             <div className={styles.hoursBox}>
               <div className={styles.hoursRow}>
                 <Clock size={18} className={styles.hoursIcon} />
                 <div className={styles.hoursText}>
-                  <span className={styles.dayRange}>Monday - Friday</span>
+                  <span className={styles.dayRange}>{t('footer.weekdays')}</span>
                   <span className={styles.timeRange}>8:00 to 17:30</span>
                 </div>
               </div>
               <div className={styles.hoursRow}>
                 <Clock size={18} className={styles.hoursIcon} />
                 <div className={styles.hoursText}>
-                  <span className={styles.dayRange}>Saturday</span>
+                  <span className={styles.dayRange}>{t('footer.saturday')}</span>
                   <span className={styles.timeRange}>8:00 to 12:00</span>
                 </div>
               </div>
@@ -120,7 +122,7 @@ export default function Footer() {
 
           {/* 5. Download App */}
           <div className={`${styles.column} ${styles.downloadColumn}`}>
-            <h4 className={styles.sectionHeading}>Download T.A Coin App</h4>
+            <h4 className={styles.sectionHeading}>{t('footer.downloadApp')}</h4>
             <div className={styles.downloadGroup}>
               <a href="#" className={styles.badgeLink}>
                 <img src={googlePlay} alt="Get it on Google Play" className={styles.storeBadge} />
@@ -136,11 +138,11 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className={styles.bottomBar}>
           <div className={styles.copyright}>
-            © {currentYear} T.A Coin. All rights reserved.
+            {t('footer.copyright', { year: currentYear })}
           </div>
           <div className={styles.legalLinks}>
             {legalLinks.map((link, idx) => (
-              <React.Fragment key={link.name}>
+              <React.Fragment key={link.href}>
                 <Link to={link.href} className={styles.legalLink}>{link.name}</Link>
                 {idx < legalLinks.length - 1 && <span className={styles.divider}>|</span>}
               </React.Fragment>

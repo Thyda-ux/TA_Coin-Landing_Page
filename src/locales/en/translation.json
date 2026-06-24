@@ -1,0 +1,448 @@
+{
+  "nav": {
+    "about": "About",
+    "story": "Story",
+    "whyUs": "Why Us",
+    "sustainability": "Sustainability",
+    "careers": "Careers",
+    "contactUs": "Contact Us",
+    "launchApp": "Launch App"
+  },
+  "languageSwitcher": {
+    "label": "Language",
+    "en": "English",
+    "km": "ខ្មែរ",
+    "zh": "中文"
+  },
+  "hero": {
+    "badge": "Innovating Local Investment",
+    "titlePrefix": "Build the future with",
+    "titleBrand": "T.A COIN",
+    "subtitle": "Our mission is to innovate local investment products, inspire and develop locals, create market confidence, and strategize digital fund portfolios.",
+    "whyChooseUs": "Why Choose Us",
+    "ourStory": "Our Story"
+  },
+  "story": {
+    "badge": "Our Origin",
+    "title": "The Story of T.A Coin",
+    "paragraph1": "Following the upward trend of the global crypto-assets business, the TA was named from the Techo International Airport, and to memorize its grand opening moment of the world 9th largest airport in Cambodia.",
+    "paragraph2": "It was the great time for the establishment of the TA Coin Company in 2025 in considering of the new airport operations which fund raising is the key matter to support their working capital. To tackle all the challenges of raising fund either from the debt or equity markets overseas as the main covenants are all located in Cambodia, we \"TA Coin\" will be the key partner in collecting funds from investors who are interested in the new airport investments including the property development in its surrounding areas. Potentially, the investment will be further funds the future expansion of the Phase 2 and the Phase 3 of the new airport.",
+    "paragraph3": "With the brilliant ideas from our key shareholders, the crypto-assets business will bring in crypto experts and transfer the expertise to Cambodia young generation, providing them a chance to learn new things and continuous strengthening their crypto related skills to welcome and be ready to the crypto growing markets.",
+    "overlayTitle": "Fueling Growth in Cambodia"
+  },
+  "whyus": {
+    "title": "Why Choose T.A Coin Investments?",
+    "knowhow": {
+      "title": "Full Know-how of the Financial Industry",
+      "body": "The shareholders, directors and management team of the T.A Coin have an in-depth industry knowledge in crypto-asset and financial services sectors. We provide confidence to investors in safeguarding and managing their investment assets with professional and care."
+    },
+    "exposure": {
+      "title": "Crypto-asset Exposure",
+      "bullet1": "Creating the accessibility of the crypto-asset investment available from the local and reputational company with peg values tied to assets in Cambodia as required by law.",
+      "bullet2": "Opportunity for investors who plan to diversify their portfolios to include crypto-asset investment."
+    },
+    "disclosures": {
+      "title": "Full Disclosures",
+      "bullet1": "Annual financial audits reports will be published online after it has been approved by the Audit Committee and the Board of Directors.",
+      "bullet2": "The peg values report will be available online after certified by the independent party designated by the Board of Directors."
+    },
+    "compliance": {
+      "title": "Regulatory Compliance and Professionalism",
+      "bullet1": "In addition to the regulatory bodies, our internal Compliance Team ensures full compliance in every aspect of the business.",
+      "bullet2": "Our expertise follows the industry professionals in securing the transactions and investments of the clients by clarifying any potential risk that may relate to their portfolios and ensure they are well-informed before joining us.",
+      "bullet3": "Investor's assets are securely stored and re-invested in legitimate, viable and high credit projects in Cambodia.",
+      "bullet4": "We are the first qualified Coin Issuer and Crypto-asset Service Providers (CASPs) licensing by the National Bank of Cambodia (the NBC) and the approval from the Cambodia Securities Exchange (CSX)."
+    },
+    "profit": {
+      "title": "Profit Sharing",
+      "body": "Profits from investment will be shared among investors as a form of Coin incentives or Coin dividends."
+    }
+  },
+  "sustainability": {
+    "title": "Social & Sustainability",
+    "description": "People and environment highly matter, we operate our business which aims to produce positive impacts to our community, our nature, in this regard, we would share our profitability as a part of the contribution to the environment, economy, and society, in particular to the territories where our business activities are conducting.",
+    "badge": "Committed to Positive Impact",
+    "cardTitle": "Our Core Impacts",
+    "impacts": {
+      "community": "Community Development",
+      "environment": "Environmental Preservation",
+      "economy": "Economic Support",
+      "territories": "Sustainable Territories"
+    }
+  },
+  "careers": {
+    "title": "Careers at T.A Coin",
+    "description": "We embrace diversity, promote women leadership, and encourage candidates from different cultures or backgrounds. We value every of our employee inputs, their thoughts and opinions to shape a fully sustainable and reliable real estate company.",
+    "features": {
+      "diversity": {
+        "title": "Diversity & Inclusion",
+        "description": "A welcoming culture for all backgrounds."
+      },
+      "growth": {
+        "title": "Career Growth",
+        "description": "Shape a sustainable real estate future with us."
+      }
+    },
+    "joinTitle": "Join Our Team",
+    "joinDesc": "Ready to make an impact? We're always looking for talented individuals to join our growing family.",
+    "emailLabel": "Email HR TEAM",
+    "viewPositions": "View Open Positions"
+  },
+  "news": {
+    "label": "LATEST UPDATE",
+    "titlePrefix": "Insight and news from",
+    "titleHighlight": "T.A team",
+    "subtitle": "Stay updated with the latest news, events, and insights from T.A Coin",
+    "seeAll": "See all News"
+  },
+  "contact": {
+    "label": "GET IN TOUCH",
+    "titlePrefix": "Contact",
+    "titleHighlight": "Us",
+    "subtitle": "Have a question or want to learn more about T.A Coin? Send us a message and our team will get back to you shortly.",
+    "successTitle": "Message Sent!",
+    "successDescPrefix": "Thank you for reaching out. We'll respond to",
+    "successDescSuffix": "as soon as possible.",
+    "sendAnother": "Send Another Message",
+    "nameLabel": "Your Name",
+    "namePlaceholder": "John Doe",
+    "emailLabel": "Your Email Address",
+    "emailPlaceholder": "yourname@email.com",
+    "messageLabel": "Your Message",
+    "messagePlaceholder": "How can we help you?",
+    "sending": "Sending...",
+    "sendMessage": "Send Message",
+    "errorGeneric": "Something went wrong. Please try again.",
+    "errorNetwork": "Network error. Please check your connection and try again."
+  },
+  "footer": {
+    "brand": "T.A COIN CO., LTD.",
+    "brandDesc": "Innovating local investment products and creating market confidence to surge capital inflows to Cambodia.",
+    "quickLinks": "Quick Links",
+    "contactsUs": "Contacts Us",
+    "hotline": "Hotline",
+    "email": "Email",
+    "address": "Address",
+    "addressValue": "Canadia Tower, 3rd Floor, No. 315, Ang Duong Street (Corner of Monivong Blvd), Phnom Penh, Cambodia",
+    "supportHours": "Support Hours",
+    "weekdays": "Monday - Friday",
+    "saturday": "Saturday",
+    "downloadApp": "Download T.A Coin App",
+    "copyright": "© {{year}} T.A Coin. All rights reserved.",
+    "privacyPolicy": "Privacy Policy",
+    "termsOfUse": "Terms of Use",
+    "disclaimer": "Disclaimer"
+  },
+  "homePopup": {
+    "title": "T.A Coin Important Update!",
+    "greeting": "Dear Valued T.A Coin Users,",
+    "para1": "We are excited to announce major upgrades to the T.A Coin ecosystem. Our platform is evolving to provide you with faster transactions, lower fees, and a more intuitive digital asset management experience.",
+    "para2": "What's new: Enhanced KHQR payment integration, expanded merchant network across Cambodia, and improved security for your digital wallet. We recommend all users to explore these new features and update their preferences within the app.",
+    "para3": "We are constantly working to improve our systems to provide you with the most secure, efficient, and user-friendly digital finance experience possible. Our mission remains focused on driving financial innovation and creating trust in the digital asset market of Cambodia.",
+    "para4": "Thank you for being a part of the T.A Coin journey. We appreciate your continued trust and support as we build the future of finance together.",
+    "countdown": "You can close this window in {{seconds}} seconds...",
+    "ready": "Click anywhere outside this box to close."
+  },
+  "backToTop": {
+    "ariaLabel": "Back to top"
+  },
+  "jobs": {
+    "headerTitle": "Open Positions",
+    "headerDesc": "Join the team fueling growth and innovation in Cambodia.",
+    "searchPlaceholder": "Search available positions...",
+    "loading": "Loading positions...",
+    "emptyState": "No positions found matching \"{{term}}\".",
+    "clearSearch": "Clear search",
+    "available": "Available",
+    "keyAccountabilities": "Key Accountabilities",
+    "knowledgeRequirements": "Knowledge & Requirements",
+    "workingConditions": "Working Conditions",
+    "applyBtn": "Apply for this position",
+    "modalTitle": "Apply for Position",
+    "modalDesc": "To apply, please reach out to our recruitment team using one of the following methods:",
+    "emailApplication": "Email Application",
+    "telegramContact": "Phone / Telegram Contact"
+  },
+  "allNews": {
+    "tabAll": "Alls",
+    "tabNews": "News",
+    "tabEvents": "Events",
+    "tabCampaign": "Campaign",
+    "empty": "No items in this category yet."
+  },
+  "newsDetail": {
+    "notFound": "News item not found",
+    "explore": "Explore Other News",
+    "seeAll": "See all News"
+  },
+  "disclaimer": {
+    "title": "Disclaimer",
+    "lastUpdated": "Last Updated: April 17th, 2026",
+    "comingSoonTitle": "Information Coming Soon",
+    "comingSoon1": "We are currently updating our Disclaimer information to ensure it provides the most accurate and up-to-date guidance for our users.",
+    "comingSoon2": "Please check back soon for the full content of this page. In the meantime, if you have any urgent questions, please feel free to reach out to our support team.",
+    "contactTeam": "Contact Our Team",
+    "telegramSupport": "Telegram Support"
+  },
+  "privacy": {
+    "title": "Privacy Policy",
+    "effectiveDate": "Effective Date: July 10th, 2025",
+    "intro1": "This Privacy Policy describes how T.A COIN CO., LTD. (\"TA COIN\") collects, uses, stores, and protects your personal information when you use our platform (Mobile App or/and Web App). We are committed to protecting your privacy and handling your data responsibly.",
+    "intro2": "You are required to carefully read this document and accepted it. If you do not agree with this Privacy Policy, then you must refrain from using our Web App (website), Mobile App and/or Services or registering an Account with us. This Privacy Policy is an integral part of our Terms of Use.",
+    "acceptance": {
+      "title": "Acceptance of the Privacy Policy Terms",
+      "body1": "By using our Web App (website), Mobile App and signing in/up for our services, clicking the confirm-checkbox, you provide us an explicit consent to terms and the data practices described in this Policy and in the Terms of Use including the processing, storage, and usage of your personal data.",
+      "body2": "From time to time, TA COIN may revise and update this Privacy Policy to reflect changes in legislation or review our personal data collection and processing practices. If any changes, amendments and additions are made to this Privacy Policy, they would come into force and be applied immediately after they are published on the Website."
+    },
+    "section1": {
+      "title": "1. Introduction to Our Privacy Commitment",
+      "body": "In the TA Coin Platforms (App & Web App), we understand the importance of your personal privacy. In accordance with Cambodia's regulatory requirements and our internal policies, we are dedicated to adhering to the spirit of privacy protection. This policy aims to be transparent about our data practices and empower you to make informed decisions about your information."
+    },
+    "section2": {
+      "title": "2. Information We Collect",
+      "intro": "We may collect various types of information from and about you when you use our TA Coin platforms (App & WebApp), depending on the features you use.",
+      "subDirectTitle": "2.1. Information You Provide Directly to Us",
+      "subDirect": {
+        "accountTitle": "Account Information:",
+        "accountBody": "When you create an account, we collect your name, email address, phone number, and a secure password.",
+        "kycTitle": "Identity Verification Information (KYC-Know Your Customer):",
+        "kycBody": "To comply with financial regulations and prevent fraud, we may require you to provide government-issued identification documents (e.g., National ID card, passport), your photograph (including a \"selfie\" for liveness detection), and other relevant identification details.",
+        "financialTitle": "Financial Information:",
+        "financialBody": "This may include bank account details, mobile money account details, and transaction history within the App/Web App.",
+        "communicationTitle": "Communication Information:",
+        "communicationBody": "Records of your communications with us, such as customer support inquiries, disputes resolution inquiries and so on.",
+        "userContentTitle": "User Content:",
+        "userContentBody": "Any information you submit through the App/Web App, such as feedback or participation in surveys, campaigns and others."
+      },
+      "subAutoTitle": "2.2. Information We Collect Automatically",
+      "subAuto": {
+        "deviceTitle": "Device Information:",
+        "deviceBody": "We collect information about your mobile device, including the device model, operating system version, unique device identifiers, mobile network information, and crash data.",
+        "usageTitle": "Usage Data:",
+        "usageBody": "We collect information about how you use the App/Web App, such as the features you access, the time and date of your activities, and app crashes.",
+        "locationTitle": "Location Information:",
+        "locationBody": "With your explicit consent, we may collect precise or approximate location information from your mobile/tablet device.",
+        "logTitle": "Log Data:",
+        "logBody": "Standard log data, including IP address, browser type, and referring/exit pages.",
+        "transactionTitle": "Transaction information:",
+        "transactionBody": "Information and balance of the trading, deposit, withdrawal, and other transactions."
+      },
+      "subThirdTitle": "2.3. Information from Third Parties",
+      "subThirdBody": "We may receive information about you from third-party service providers (e.g., identity verification services, payment processors) when necessary to provide our services."
+    },
+    "section3": {
+      "title": "3. How We Use Your Information",
+      "item1": "To Provide and Maintain Our Services",
+      "item2": "For Security, Fraud Prevention, AML and CTF",
+      "item3": "For Customer Support",
+      "item4": "For Communication",
+      "item5": "For Legal and Regulatory Compliance",
+      "item6": "For Analytics and Research"
+    },
+    "section4": {
+      "title": "4. How We Share Your Information",
+      "item1": "With Your Consent",
+      "item2": "Service Providers",
+      "item3": "Legal Requirements and Law Enforcement",
+      "item4": "Business Transfers",
+      "item5": "Aggregated or Anonymized Data"
+    },
+    "section5": {
+      "title": "5. Data Retention",
+      "body": "We will retain your personal information for as long as necessary to fulfill the purposes outlined in this Privacy Policy, unless a longer retention period is required or permitted by law."
+    },
+    "section6": {
+      "title": "6. Data Security",
+      "body": "We implement reasonable technical and organizational measures to protect your personal information, including encryption, access controls, regular security audits, and employee training."
+    },
+    "section7": {
+      "title": "7. Your Rights",
+      "item1": "Right to be Informed",
+      "item2": "Right to Access",
+      "item3": "Right to Rectification",
+      "item4": "Right to Object",
+      "item5": "Withdrawal of Consent"
+    },
+    "section8": {
+      "title": "8. Children's Privacy",
+      "body": "TA Coin Platforms are not intended for use by individuals under the age of 18. We do not knowingly collect personal information from children under 18."
+    },
+    "section9": {
+      "title": "9. Changes to This Privacy Policy",
+      "body": "We may update this Privacy Policy from time to time. We will notify you of any material changes by posting the updated Privacy Policy on our App/WebApp."
+    },
+    "section10": {
+      "title": "10. Contact Us"
+    }
+  },
+  "terms": {
+    "title": "Terms and Conditions",
+    "effectiveDate": "Effective Date: 19 February 2026",
+    "companyName": "T.A COIN CO., LTD.",
+    "welcome": "Welcome to T.A Coin. These Terms and Conditions govern your use of our digital platform and services.",
+    "section1": {
+      "title": "1. Definitions and Interpretation",
+      "item11Title": "1.1 Company:",
+      "item11Body": "T.A Coin Co., Ltd. (\"T.A Coin\", \"we\", \"us\", \"our\"), a company organized under the laws of the Kingdom of Cambodia.",
+      "item12Title": "1.2 Platform:",
+      "item12Body": "The websites, mobile applications (iOS/Android), APIs, and other digital channels operated by T.A Coin.",
+      "item13Title": "1.3 Services:",
+      "item13Body": "The technology platform and related features enabling Users to access digital asset services.",
+      "item14Title": "1.4 User:",
+      "item14Body": "(\"you\", \"your\") Any natural person or legal entity that registers an account or accesses the Services.",
+      "item15Title": "1.5 Digital Assets:",
+      "item15Body": "Cryptographic tokens, coins, stablecoins, and other digital representations of value.",
+      "item16Title": "1.6 Applicable Law:",
+      "item16Body": "All laws, sub-decrees, prakas, and regulations of Cambodia."
+    },
+    "section2": {
+      "title": "2. Acceptance of Terms",
+      "body1": "2.1 By accessing or using the Platform, you acknowledge that these Terms constitute a binding legal agreement between you and T.A Coin.",
+      "body2": "2.2 T.A Coin acts solely as a technology platform and marketplace facilitator. We do not act as your broker, agent, or investment adviser."
+    },
+    "section3": {
+      "title": "3. Corporate Information",
+      "body": "3.1 T.A Coin Co., Ltd. was incorporated in Cambodia, registered at the Ministry of Commerce under registration number 1000502187, dated 30 May 2025."
+    },
+    "section4": {
+      "title": "4. Regulatory Status & Investor Eligibility",
+      "sercTitle": "4.1 SERC Regulatory Sandbox:",
+      "sercBody": "T.A Coin operates under the Regulatory Sandbox of the Securities and Exchange Regulator of Cambodia (SERC).",
+      "qiTitle": "4.2 Qualified Investor Requirement:",
+      "qiBody": "By using the Platform, you confirm that you are a Qualified Investor as defined under applicable SERC prakas."
+    },
+    "section5": {
+      "title": "5. Scope of Services",
+      "body1": "5.1 The Platform may include Peer-to-Peer (P2P) Trading, Online Purchase of Properties/Goods/Services, Loyalty Programs, and Biometric Login.",
+      "noLendingTitle": "5.2 No Lending:",
+      "noLendingBody": "T.A Coin does not provide loans or credit facilities."
+    },
+    "section6": {
+      "title": "6. Third-Party Service Providers",
+      "body1": "6.1 T.A Coin engages third-party processors and service providers (cloud providers, KYC vendors, etc.) to deliver the Services.",
+      "noLiabilityTitle": "6.5 No Liability for Third Parties:",
+      "noLiabilityBody": "T.A Coin shall not be liable for losses arising from acts or omissions of independent third-party service providers."
+    },
+    "section7": {
+      "title": "7. Eligibility and Legal Capacity",
+      "body": "7.1 You warrant that you are at least 18 years old, have legal capacity, and are not subject to sanctions."
+    },
+    "section8": {
+      "title": "8. Account Registration and Security",
+      "body": "8.1 You must provide accurate information and safeguard your credentials. You consent to receive communications electronically."
+    },
+    "section9": {
+      "title": "9. User Conduct",
+      "body": "9.1 You shall not engage in fraud, market manipulation, or use automated tools to disrupt the Platform."
+    },
+    "section11": {
+      "title": "11. Risk Disclosure",
+      "body": "11.1 Digital Assets are highly volatile and may lose value rapidly. You acknowledge that blockchain transactions may be irreversible."
+    },
+    "section12": {
+      "title": "12. AML/KYC Compliance",
+      "body": "12.1 T.A Coin complies with the AML/CFT Law 2020 and implementing instruments. Users must complete identity verification (CDD)."
+    },
+    "section13": {
+      "title": "13. Privacy",
+      "body": "13.1 T.A Coin processes personal data to provide Services, perform KYC/AML obligations, and ensure security."
+    },
+    "section19": {
+      "title": "19. Limitation of Liability",
+      "body": "19.1 To the maximum extent permitted by law, T.A Coin shall not be liable for indirect, incidental, or consequential damages."
+    },
+    "section24": {
+      "title": "24. Governing Law and Dispute Resolution",
+      "body1": "24.1 These Terms are governed by the laws of the Kingdom of Cambodia.",
+      "body2": "24.2 Any dispute shall be finally resolved by arbitration administered by the NCAC under the NCAC Arbitration Rules (2021) in Phnom Penh."
+    },
+    "contactTitle": "Contact Information",
+    "telegramSupport": "Telegram Support"
+  },
+  "chatbot": {
+    "headerTitle": "T.A Coin Support",
+    "liveAgent": "Live Agent",
+    "statusWaiting": "Waiting...",
+    "statusConnected": "Connected",
+    "statusTimedOut": "Timed Out",
+    "waitingForAgent": "Waiting for an agent...",
+    "agentJoined": "✅ An agent has joined the chat.",
+    "assistantName": "T.A Coin Assistant",
+    "agentLabel": "Agent",
+    "systemLabel": "System",
+    "inputPlaceholder": "Type your message",
+    "inputPlaceholderAgent": "Type message...",
+    "inputPlaceholderWaiting": "Waiting for agent...",
+    "inputPlaceholderTimedOut": "Session timed out",
+    "inputPlaceholderForm": "Complete the form above",
+    "send": "Send",
+    "attach": {
+      "tooLarge": "Image must be smaller than 5 MB.",
+      "uploadFailed": "Upload failed: {{message}}"
+    },
+    "needHelp": "Need Help?",
+    "backToBot": "Back to bot",
+    "customerDetails": "Customer Details",
+    "contactInfo": "Contact information.",
+    "nameLabel": "Name *",
+    "phoneLabel": "Phone *",
+    "emailLabel": "Email *",
+    "issueDetailsTitle": "Issue Details",
+    "issueDetailsDesc": "Describe the issue.",
+    "typeLabel": "Type *",
+    "detailsLabel": "Details",
+    "cancel": "Cancel",
+    "submitting": "Submitting...",
+    "connectToAgent": "Connect to Agent",
+    "sessionEndingIn": "Session ending in {{time}} due to inactivity.",
+    "opt": {
+      "faqs": "FAQs",
+      "connectToAgent": "Connect to Agent",
+      "goToAccountSettings": "Go to Account Settings"
+    },
+    "cat": {
+      "Getting Started": "Getting Started",
+      "Account & App": "Account & App",
+      "Payments & Wallet": "Payments & Wallet",
+      "Security": "Security",
+      "Support": "Support",
+      "Careers": "Careers",
+      "Legal": "Legal"
+    },
+    "issue": {
+      "Account Issue": "Account Issue",
+      "General Enquiry": "General Enquiry",
+      "KYC / Verification Issue": "KYC / Verification Issue",
+      "Login Issue": "Login Issue",
+      "OTP Issue": "OTP Issue",
+      "P2P Dispute": "P2P Dispute",
+      "P2P Issue": "P2P Issue",
+      "Technical Support": "Technical Support",
+      "Transaction Issue": "Transaction Issue",
+      "Voucher / Coupon Issue": "Voucher / Coupon Issue",
+      "Withdrawal Issue": "Withdrawal Issue"
+    },
+    "bot": {
+      "greeting": "Hi there. How can we help you today?",
+      "chooseCategory": "Choose a category or type your question.",
+      "categoryIntro": "Here are common {{category}} questions:",
+      "categoryNone": "No FAQs found for {{category}}.",
+      "connecting": "🔄 Connecting you to a live agent. Please wait...",
+      "leftAgent": "You have left the agent chat. How else can I help you?",
+      "timedOut": "⏱️ Your agent chat session was closed due to inactivity. The conversation has been saved. How else can I help you?",
+      "supportFormPrompt": "Please complete this support form so we can connect you to the right agent.",
+      "lowConfidence": "I couldn't find a clear answer in our FAQs. Want me to connect you with an agent, or browse FAQs by category?",
+      "searchError": "I'm having trouble searching our knowledge base right now. Would you like to connect to an agent?",
+      "sendFailed": "Failed to send message. Please try again.",
+      "supportFailed": "Support request failed: {{message}}",
+      "submittedTicket": "Submitted Ticket for: {{type}}",
+      "completeFields": "Please complete all required fields."
+    },
+    "predefined": {
+      "greeting": "Hi there! I'm the T.A Coin Assistant. How can I help you today?",
+      "thanks": "You're very welcome! Is there anything else I can help you with?",
+      "goodbye": "Thanks for chatting with T.A Coin Support. Have a great day!",
+      "agent_request": "Sure thing — I'll connect you with a live agent. Please fill in the short form below so we can route you to the right person."
+    }
+  }
+}

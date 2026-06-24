@@ -4,8 +4,9 @@
 // even when Gemini is down or quota is exhausted.
 //
 // matchPredefinedResponse(userText) returns either:
-//   { intent, text, options?, action? }  -- handled, skip backend call
-//   null                                  -- no match, fall through to RAG
+//   { intent, action? }  -- handled; the caller localizes the text + options
+//                            via i18n keys (chatbot.predefined.<intent>).
+//   null                 -- no match, fall through to RAG
 
 const GREETING_PATTERNS = [
   /^(hi|hello|hey|hiya|howdy|yo|sup|hola)$/i,
@@ -59,36 +60,10 @@ export function matchPredefinedResponse(userInput) {
   const text = normalize(userInput);
   if (!text) return null;
 
-  if (matchesAny(text, AGENT_TRIGGER_PATTERNS)) {
-    return {
-      intent: 'agent_request',
-      text: "Sure thing — I'll connect you with a live agent. Please fill in the short form below so we can route you to the right person.",
-      action: 'OPEN_SUPPORT_FORM',
-    };
-  }
-
-  if (matchesAny(text, GREETING_PATTERNS)) {
-    return {
-      intent: 'greeting',
-      text: "Hi there! I'm the T.A Coin Assistant. How can I help you today?",
-      options: ['FAQs', 'Connect to Agent'],
-    };
-  }
-
-  if (matchesAny(text, THANKS_PATTERNS)) {
-    return {
-      intent: 'thanks',
-      text: "You're very welcome! Is there anything else I can help you with?",
-      options: ['FAQs', 'Connect to Agent'],
-    };
-  }
-
-  if (matchesAny(text, GOODBYE_PATTERNS)) {
-    return {
-      intent: 'goodbye',
-      text: 'Thanks for chatting with T.A Coin Support. Have a great day!',
-    };
-  }
+  if (matchesAny(text, AGENT_TRIGGER_PATTERNS)) return { intent: 'agent_request', action: 'OPEN_SUPPORT_FORM' };
+  if (matchesAny(text, GREETING_PATTERNS)) return { intent: 'greeting', withOptions: true };
+  if (matchesAny(text, THANKS_PATTERNS)) return { intent: 'thanks', withOptions: true };
+  if (matchesAny(text, GOODBYE_PATTERNS)) return { intent: 'goodbye' };
 
   return null;
 }

@@ -208,7 +208,9 @@ export function subscribeToSessionMessages(sessionId, onMessage) {
         onMessage(payload.new);
       }
     )
-    .subscribe();
+    .subscribe((status, err) => {
+      if (err && import.meta.env?.DEV) console.warn(`Realtime messages channel error (${status}):`, err);
+    });
 
   return channel;
 }
@@ -231,7 +233,9 @@ export function subscribeToSessionStatus(sessionId, onStatusChange) {
         onStatusChange(payload.new);
       }
     )
-    .subscribe();
+    .subscribe((status, err) => {
+      if (err && import.meta.env?.DEV) console.warn(`Realtime session channel error (${status}):`, err);
+    });
 
   return channel;
 }

@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import styles from './styles/HomePopup.module.css';
 
 // Using news_airport as a placeholder. You can swap this with the actual Canadia advert image asset.
 import bannerImage from '../assets/news_airport.png';
 
 export default function HomePopup() {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [timeLeft, setTimeLeft] = useState(3);
 
@@ -61,25 +63,17 @@ export default function HomePopup() {
         </div>
 
         <div className={styles.content}>
-          <h2 className={styles.title}>T.A Coin Important Update!</h2>
+          <h2 className={styles.title}>{t('homePopup.title')}</h2>
           <div className={styles.message}>
-            <p>Dear Valued T.A Coin Users,</p>
-            <p>
-              We are excited to announce major upgrades to the T.A Coin ecosystem. Our platform is evolving to provide you with faster transactions, lower fees, and a more intuitive digital asset management experience.
-            </p>
-            <p>
-              What's new: Enhanced KHQR payment integration, expanded merchant network across Cambodia, and improved security for your digital wallet. We recommend all users to explore these new features and update their preferences within the app.
-            </p>
-            <p>
-              We are constantly working to improve our systems to provide you with the most secure, efficient, and user-friendly digital finance experience possible. Our mission remains focused on driving financial innovation and creating trust in the digital asset market of Cambodia.
-            </p>
-            <p>
-              Thank you for being a part of the T.A Coin journey. We appreciate your continued trust and support as we build the future of finance together.
-            </p>
+            <p>{t('homePopup.greeting')}</p>
+            <p>{t('homePopup.para1')}</p>
+            <p>{t('homePopup.para2')}</p>
+            <p>{t('homePopup.para3')}</p>
+            <p>{t('homePopup.para4')}</p>
           </div>
 
           <div className={`${styles.closeHint} ${timeLeft === 0 ? styles.ready : ''}`}>
-            {timeLeft > 0 ? `You can close this window in ${timeLeft} seconds...` : 'Click anywhere outside this box to close.'}
+            {timeLeft > 0 ? t('homePopup.countdown', { seconds: timeLeft }) : t('homePopup.ready')}
           </div>
         </div>
 

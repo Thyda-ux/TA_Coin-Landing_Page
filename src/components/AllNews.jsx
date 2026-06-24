@@ -1,13 +1,20 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Megaphone, Calendar, ArrowUpRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import styles from './styles/AllNews.module.css';
 
 import { ALL_NEWS_ITEMS } from '../data/newsData';
 
-const TABS = ['Alls', 'News', 'Events', 'Campaign'];
+const TAB_KEYS = [
+  { key: 'Alls', i18nKey: 'allNews.tabAll' },
+  { key: 'News', i18nKey: 'allNews.tabNews' },
+  { key: 'Events', i18nKey: 'allNews.tabEvents' },
+  { key: 'Campaign', i18nKey: 'allNews.tabCampaign' },
+];
 
 export default function AllNews() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState('Alls');
   const navigate = useNavigate();
 
@@ -27,26 +34,26 @@ export default function AllNews() {
       <div className={styles.headerSection}>
         <div className={`container ${styles.headerContainer}`}>
           <span className={styles.latestUpdateLabel}>
-            <Megaphone size={14} /> LATEST UPDATE
+            <Megaphone size={14} /> {t('news.label')}
           </span>
           <h1 className={styles.headerTitle}>
-            Insight and news from <span>T.A team</span>
+            {t('news.titlePrefix')} <span>{t('news.titleHighlight')}</span>
           </h1>
           <p className={styles.headerSubtitle}>
-            Stay updated with the latest news, events, and insights from T.A Coin
+            {t('news.subtitle')}
           </p>
         </div>
       </div>
 
       {/* Filter Tabs (pill buttons) */}
       <div className={`container ${styles.filterRow}`}>
-        {TABS.map((tab) => (
+        {TAB_KEYS.map(({ key, i18nKey }) => (
           <button
-            key={tab}
-            className={`${styles.filterTab} ${activeTab === tab ? styles.active : ''}`}
-            onClick={() => setActiveTab(tab)}
+            key={key}
+            className={`${styles.filterTab} ${activeTab === key ? styles.active : ''}`}
+            onClick={() => setActiveTab(key)}
           >
-            {tab}
+            {t(i18nKey)}
           </button>
         ))}
       </div>
@@ -54,12 +61,12 @@ export default function AllNews() {
       {/* Cards */}
       <div className={`container ${styles.cardsSection}`}>
         {filteredNews.length === 0 ? (
-          <p className={styles.emptyState}>No items in this category yet.</p>
+          <p className={styles.emptyState}>{t('allNews.empty')}</p>
         ) : (
           <div className={styles.newsGrid}>
             {filteredNews.map((item) => (
-              <div 
-                key={item.id} 
+              <div
+                key={item.id}
                 className={styles.newsCard}
                 onClick={() => navigate(`/news/${item.id}`)}
               >

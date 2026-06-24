@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ArrowUp } from 'lucide-react';
 import styles from './styles/BackToTop.module.css';
 
 export default function BackToTop() {
+  const { t } = useTranslation();
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
@@ -43,7 +45,7 @@ export default function BackToTop() {
     <button
       className={`${styles.backToTop} ${isVisible ? styles.visible : ''}`}
       onClick={scrollToTop}
-      aria-label="Back to top"
+      aria-label={t('backToTop.ariaLabel')}
     >
       <ArrowUp className={styles.icon} size={28} />
     </button>

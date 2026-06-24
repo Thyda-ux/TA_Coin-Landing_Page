@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Send, Mail, CheckCircle } from 'lucide-react';
 import styles from './styles/ContactUs.module.css';
 
 export default function ContactUs() {
+  const { t } = useTranslation();
   const [form, setForm] = useState({ name: '', email: '', message: '' });
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -27,10 +29,10 @@ export default function ContactUs() {
         setSubmitted(true);
       } else {
         const data = await res.json();
-        setError(data?.errors?.[0]?.message || 'Something went wrong. Please try again.');
+        setError(data?.errors?.[0]?.message || t('contact.errorGeneric'));
       }
     } catch {
-      setError('Network error. Please check your connection and try again.');
+      setError(t('contact.errorNetwork'));
     } finally {
       setLoading(false);
     }
@@ -46,13 +48,13 @@ export default function ContactUs() {
         {/* Header */}
         <div className={styles.headerDiv}>
           <span className={styles.getInTouchLabel}>
-            <Mail size={14} /> GET IN TOUCH
+            <Mail size={14} /> {t('contact.label')}
           </span>
           <h2 className={styles.headerTitle}>
-            Contact <span>Us</span>
+            {t('contact.titlePrefix')} <span>{t('contact.titleHighlight')}</span>
           </h2>
           <p className={styles.headerSub}>
-            Have a question or want to learn more about T.A Coin? Send us a message and our team will get back to you shortly.
+            {t('contact.subtitle')}
           </p>
         </div>
 
@@ -62,16 +64,16 @@ export default function ContactUs() {
             <div className={styles.successContainer}>
               <CheckCircle size={56} color="var(--color-primary)" className={styles.successIcon} />
               <h3 className={styles.successTitle}>
-                Message Sent!
+                {t('contact.successTitle')}
               </h3>
               <p className={styles.successDesc}>
-                Thank you for reaching out. We'll respond to <strong>{form.email}</strong> as soon as possible.
+                {t('contact.successDescPrefix')} <strong>{form.email}</strong> {t('contact.successDescSuffix')}
               </p>
               <button
                 className={`btn btn-outline ${styles.resetButton}`}
                 onClick={() => { setSubmitted(false); setForm({ email: '', message: '' }); }}
               >
-                Send Another Message
+                {t('contact.sendAnother')}
               </button>
             </div>
           ) : (
@@ -84,7 +86,7 @@ export default function ContactUs() {
               {/* Name */}
               <div>
                 <label className={styles.inputLabel}>
-                  Your Name
+                  {t('contact.nameLabel')}
                 </label>
                 <input
                   type="text"
@@ -92,7 +94,7 @@ export default function ContactUs() {
                   value={form.name}
                   onChange={handleChange}
                   required
-                  placeholder="John Doe"
+                  placeholder={t('contact.namePlaceholder')}
                   className={styles.inputField}
                 />
               </div>
@@ -100,7 +102,7 @@ export default function ContactUs() {
               {/* Email */}
               <div>
                 <label className={styles.inputLabel}>
-                  Your Email Address
+                  {t('contact.emailLabel')}
                 </label>
                 <div className={styles.emailInputWrapper}>
                   <Mail
@@ -114,7 +116,7 @@ export default function ContactUs() {
                     value={form.email}
                     onChange={handleChange}
                     required
-                    placeholder="yourname@email.com"
+                    placeholder={t('contact.emailPlaceholder')}
                     className={`${styles.inputField} ${styles.emailField}`}
                   />
                 </div>
@@ -123,7 +125,7 @@ export default function ContactUs() {
               {/* Message */}
               <div>
                 <label className={styles.inputLabel}>
-                  Your Message
+                  {t('contact.messageLabel')}
                 </label>
                 <textarea
                   name="message"
@@ -131,7 +133,7 @@ export default function ContactUs() {
                   onChange={handleChange}
                   required
                   rows={5}
-                  placeholder="How can we help you?"
+                  placeholder={t('contact.messagePlaceholder')}
                   style={{ resize: 'vertical' }}
                   className={styles.inputField}
                 />
@@ -146,11 +148,11 @@ export default function ContactUs() {
                 {loading ? (
                   <>
                     <span className={styles.spinner} />
-                    Sending...
+                    {t('contact.sending')}
                   </>
                 ) : (
                   <>
-                    <Send size={18} /> Send Message
+                    <Send size={18} /> {t('contact.sendMessage')}
                   </>
                 )}
               </button>

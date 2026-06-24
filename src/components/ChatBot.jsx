@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
-  ExternalLink, X, Paperclip, Send, User, Info, 
-  MessageSquare, ArrowLeft, Headphones, ClipboardList, 
+  ExternalLink, X, Paperclip, Send, User, Info,
+  MessageSquare, ArrowLeft, Headphones, ClipboardList,
   Image as ImageIcon,
 } from 'lucide-react';
 import {
@@ -54,6 +55,7 @@ const renderMarkdown = (text) => {
 };
 
 const ChatBot = () => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const messagesEndRef = useRef(null);
   const supportFormRef = useRef(null);
@@ -186,7 +188,7 @@ const ChatBot = () => {
       {!isOpen && (
         <button className={styles.chatbotFab} onClick={toggleChat}>
           <MessageSquare size={24} />
-          <span>Need Help?</span>
+          <span>{t('chatbot.needHelp')}</span>
         </button>
       )}
 
@@ -196,17 +198,17 @@ const ChatBot = () => {
           {/* Header */}
           <div className={`${styles.chatbotHeader} ${mode === 'agent' ? styles.agentHeader : ''}`}>
             {mode === 'agent' && (
-              <button className={styles.chatBackBtn} onClick={backToBot} title="Back to bot"><ArrowLeft size={18} /></button>
+              <button className={styles.chatBackBtn} onClick={backToBot} title={t('chatbot.backToBot')}><ArrowLeft size={18} /></button>
             )}
             <div className={styles.agentHeaderInfo}>
               {mode === 'agent' ? <Headphones size={18} /> : null}
-              <h3>{mode === 'agent' ? 'Live Agent' : 'T.A Coin Support'}</h3>
+              <h3>{mode === 'agent' ? t('chatbot.liveAgent') : t('chatbot.headerTitle')}</h3>
             </div>
             {mode === 'agent' && (
               <div className={styles.agentStatus}>
-                {agentWaiting && !sessionTimedOut && <span className={styles.statusWaiting}>Waiting...</span>}
-                {agentJoined && !sessionTimedOut && <span className={styles.statusConnected}>Connected</span>}
-                {sessionTimedOut && <span className={styles.statusWaiting}>Timed Out</span>}
+                {agentWaiting && !sessionTimedOut && <span className={styles.statusWaiting}>{t('chatbot.statusWaiting')}</span>}
+                {agentJoined && !sessionTimedOut && <span className={styles.statusConnected}>{t('chatbot.statusConnected')}</span>}
+                {sessionTimedOut && <span className={styles.statusWaiting}>{t('chatbot.statusTimedOut')}</span>}
               </div>
             )}
             <button onClick={toggleChat}><X size={18} /></button>
@@ -221,10 +223,10 @@ const ChatBot = () => {
               <div className={`${styles.chatMessageGroup} ${styles.bot}`}>
                 <div className={styles.chatAvatar}><Headphones size={18} /></div>
                 <div className={styles.chatMessageContent}>
-                  <span className={styles.chatSenderName}>System</span>
+                  <span className={styles.chatSenderName}>{t('chatbot.systemLabel')}</span>
                   <div className={styles.chatBubble}>
                     <div className={styles.typingDots}><span></span><span></span><span></span></div>
-                    <p style={{ marginTop: '8px', fontSize: '12px', opacity: 0.7 }}>Waiting for an agent...</p>
+                    <p style={{ marginTop: '8px', fontSize: '12px', opacity: 0.7 }}>{t('chatbot.waitingForAgent')}</p>
                   </div>
                 </div>
               </div>
@@ -234,8 +236,8 @@ const ChatBot = () => {
               <div className={`${styles.chatMessageGroup} ${styles.bot}`}>
                 <div className={styles.chatAvatar}><Headphones size={18} /></div>
                 <div className={styles.chatMessageContent}>
-                  <span className={styles.chatSenderName}>System</span>
-                  <div className={styles.chatBubble}>✅ An agent has joined the chat.</div>
+                  <span className={styles.chatSenderName}>{t('chatbot.systemLabel')}</span>
+                  <div className={styles.chatBubble}>{t('chatbot.agentJoined')}</div>
                 </div>
               </div>
             )}
@@ -253,7 +255,7 @@ const ChatBot = () => {
                   <div className={styles.chatMessageContent}>
                     {!isUser && (
                       <span className={styles.chatSenderName}>
-                        {mode === 'agent' ? (isAgent ? 'Agent' : 'System') : 'T.A Coin Assistant'}
+                        {mode === 'agent' ? (isAgent ? t('chatbot.agentLabel') : t('chatbot.systemLabel')) : t('chatbot.assistantName')}
                       </span>
                     )}
                     <div className={styles.chatBubble}>
@@ -269,7 +271,7 @@ const ChatBot = () => {
                       {item.options && (
                         <div className={styles.chatOptions}>
                           {item.options.map(opt => (
-                            <button key={opt} type="button" className={styles.chatOptionBtn} onClick={() => handleOption(opt, focusSupportForm)} disabled={isLoading}>{opt}</button>
+                            <button key={opt.id} type="button" className={styles.chatOptionBtn} onClick={() => handleOption(opt, focusSupportForm)} disabled={isLoading}>{opt.label}</button>
                           ))}
                         </div>
                       )}
@@ -314,32 +316,32 @@ const ChatBot = () => {
               <form ref={supportFormRef} className={styles.supportFormCard} onSubmit={(e) => submitSupportForm(e)}>
                 <div className={styles.supportFormHeader}>
                   <div className={styles.supportFormHeaderIcon}><User size={18} /></div>
-                  <div><h4>Customer Details</h4><p>Contact information.</p></div>
+                  <div><h4>{t('chatbot.customerDetails')}</h4><p>{t('chatbot.contactInfo')}</p></div>
                   <button type="button" className={styles.supportFormCloseBtn} onClick={resetSupportForm}><X size={14} /></button>
                 </div>
                 <div className={styles.supportFormGrid}>
-                  <label className={styles.supportField}><span>Name *</span><input type="text" value={supportForm.name} onChange={e => setSupportForm(p => ({ ...p, name: e.target.value }))} required /></label>
-                  <label className={styles.supportField}><span>Phone *</span><input type="tel" value={supportForm.phone} onChange={e => setSupportForm(p => ({ ...p, phone: e.target.value }))} required /></label>
-                  <label className={`${styles.supportField} ${styles.supportFieldFull}`}><span>Email *</span><input type="email" value={supportForm.email} onChange={e => setSupportForm(p => ({ ...p, email: e.target.value }))} required /></label>
+                  <label className={styles.supportField}><span>{t('chatbot.nameLabel')}</span><input type="text" value={supportForm.name} onChange={e => setSupportForm(p => ({ ...p, name: e.target.value }))} required /></label>
+                  <label className={styles.supportField}><span>{t('chatbot.phoneLabel')}</span><input type="tel" value={supportForm.phone} onChange={e => setSupportForm(p => ({ ...p, phone: e.target.value }))} required /></label>
+                  <label className={`${styles.supportField} ${styles.supportFieldFull}`}><span>{t('chatbot.emailLabel')}</span><input type="email" value={supportForm.email} onChange={e => setSupportForm(p => ({ ...p, email: e.target.value }))} required /></label>
                 </div>
                 <div className={styles.supportFormHeader}>
                   <div className={styles.supportFormHeaderIcon}><ClipboardList size={18} /></div>
-                  <div><h4>Issue Details</h4><p>Describe the issue.</p></div>
+                  <div><h4>{t('chatbot.issueDetailsTitle')}</h4><p>{t('chatbot.issueDetailsDesc')}</p></div>
                 </div>
                 <div className={styles.supportIssueGrid}>
-                  <label className={styles.supportField}><span>Type *</span>
+                  <label className={styles.supportField}><span>{t('chatbot.typeLabel')}</span>
                     <select value={supportForm.issueType} onChange={e => setSupportForm(p => ({ ...p, issueType: e.target.value }))}>
-                      {ISSUE_TYPE_OPTIONS.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                      {ISSUE_TYPE_OPTIONS.map(opt => <option key={opt} value={opt}>{t(`chatbot.issue.${opt}`, opt)}</option>)}
                     </select>
                   </label>
-                  <label className={`${styles.supportField} ${styles.supportFieldFull}`}><span>Details</span>
+                  <label className={`${styles.supportField} ${styles.supportFieldFull}`}><span>{t('chatbot.detailsLabel')}</span>
                     <textarea rows={2} value={supportForm.issueDetails} onChange={e => setSupportForm(p => ({ ...p, issueDetails: e.target.value }))} />
                   </label>
                 </div>
                 {supportFormError && <p className={styles.supportFormError}>{supportFormError}</p>}
                 <div className={styles.supportFormActions}>
-                  <button type="button" className={styles.supportCancelBtn} onClick={resetSupportForm} disabled={isLoading}>Cancel</button>
-                  <button type="submit" className={styles.supportSubmitBtn} disabled={isLoading}>{isLoading ? 'Submitting...' : 'Connect to Agent'}</button>
+                  <button type="button" className={styles.supportCancelBtn} onClick={resetSupportForm} disabled={isLoading}>{t('chatbot.cancel')}</button>
+                  <button type="submit" className={styles.supportSubmitBtn} disabled={isLoading}>{isLoading ? t('chatbot.submitting') : t('chatbot.connectToAgent')}</button>
                 </div>
               </form>
             )}
@@ -350,7 +352,7 @@ const ChatBot = () => {
           {/* Footer Input Area */}
           {mode === 'agent' && renderImagePreview()}
           {attachError && <div className={styles.attachmentError}>{attachError}</div>}
-          {showTimeoutWarning && <div className={styles.sessionWarning}>Session ending in {Math.floor(remainingWarningSeconds / 60)}:{String(remainingWarningSeconds % 60).padStart(2, '0')} due to inactivity.</div>}
+          {showTimeoutWarning && <div className={styles.sessionWarning}>{t('chatbot.sessionEndingIn', { time: `${Math.floor(remainingWarningSeconds / 60)}:${String(remainingWarningSeconds % 60).padStart(2, '0')}` })}</div>}
 
           <form className={styles.chatbotFooter} onSubmit={(e) => handleSubmit(e)}>
             <input ref={fileInputRef} type="file" accept={ACCEPTED_IMAGE_TYPES} className={styles.hiddenFileInput} onChange={onFileChange} />
@@ -361,7 +363,7 @@ const ChatBot = () => {
               <input
                 type="text"
                 className={styles.chatInput}
-                placeholder={mode === 'agent' ? (sessionTimedOut ? 'Session timed out' : agentJoined ? 'Type message...' : 'Waiting for agent...') : supportForm.active ? 'Complete the form above' : 'Type your message'}
+                placeholder={mode === 'agent' ? (sessionTimedOut ? t('chatbot.inputPlaceholderTimedOut') : agentJoined ? t('chatbot.inputPlaceholderAgent') : t('chatbot.inputPlaceholderWaiting')) : supportForm.active ? t('chatbot.inputPlaceholderForm') : t('chatbot.inputPlaceholder')}
                 value={input}
                 onChange={e => setInput(e.target.value)}
                 disabled={(mode === 'agent' && (!agentJoined || sessionTimedOut)) || supportForm.active}

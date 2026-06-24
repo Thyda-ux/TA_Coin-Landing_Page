@@ -1,0 +1,448 @@
+{
+  "nav": {
+    "about": "关于",
+    "story": "故事",
+    "whyUs": "为何选择我们",
+    "sustainability": "可持续发展",
+    "careers": "招聘",
+    "contactUs": "联系我们",
+    "launchApp": "启动应用"
+  },
+  "languageSwitcher": {
+    "label": "语言",
+    "en": "English",
+    "km": "ខ្មែរ",
+    "zh": "中文"
+  },
+  "hero": {
+    "badge": "本地投资创新",
+    "titlePrefix": "与我们共建未来",
+    "titleBrand": "T.A COIN",
+    "subtitle": "我们的使命是创新本地投资产品,激励和培养本地人才,建立市场信心,并规划数字基金组合战略。",
+    "whyChooseUs": "为何选择我们",
+    "ourStory": "我们的故事"
+  },
+  "story": {
+    "badge": "我们的起源",
+    "title": "T.A Coin 的故事",
+    "paragraph1": "顺应全球加密资产业务的上升趋势,TA 取名自德崇国际机场,以纪念这座柬埔寨第九大机场的盛大开幕。",
+    "paragraph2": "2025 年是 TA Coin 公司成立的绝佳时机,考虑到新机场的运营,筹集资金是支持其营运资本的关键。为了应对从海外债务或股权市场筹集资金的所有挑战(主要契约方均位于柬埔寨),我们 \"TA Coin\" 将成为关键合作伙伴,从对新机场投资感兴趣的投资者那里筹集资金,包括周边地区的房地产开发。这些投资有望进一步为新机场二期和三期的未来扩建提供资金。",
+    "paragraph3": "凭借主要股东的卓越创意,加密资产业务将引入加密专家,并将专业知识传递给柬埔寨年轻一代,为他们提供学习新事物的机会,并不断加强他们在加密相关领域的技能,以迎接和应对不断增长的加密市场。",
+    "overlayTitle": "助力柬埔寨经济增长"
+  },
+  "whyus": {
+    "title": "为何选择 T.A Coin 投资?",
+    "knowhow": {
+      "title": "深厚的金融行业专业知识",
+      "body": "T.A Coin 的股东、董事和管理团队在加密资产和金融服务领域拥有深入的行业知识。我们以专业和谨慎的态度为投资者保障和管理其投资资产提供信心。"
+    },
+    "exposure": {
+      "title": "加密资产敞口",
+      "bullet1": "通过本地知名公司提供加密资产投资的可及性,其挂钩价值依法与柬埔寨的资产挂钩。",
+      "bullet2": "为计划多元化投资组合以纳入加密资产投资的投资者提供机会。"
+    },
+    "disclosures": {
+      "title": "全面信息披露",
+      "bullet1": "年度财务审计报告将在审计委员会和董事会批准后在网上发布。",
+      "bullet2": "挂钩价值报告将在董事会指定的独立方认证后在网上提供。"
+    },
+    "compliance": {
+      "title": "监管合规与专业精神",
+      "bullet1": "除了监管机构外,我们的内部合规团队确保业务各方面的全面合规。",
+      "bullet2": "我们的专业知识遵循行业专业人士的做法,通过澄清可能与客户投资组合相关的潜在风险来保护客户的交易和投资,并确保他们在加入我们之前充分知情。",
+      "bullet3": "投资者的资产被安全存储,并再投资于柬埔寨合法、可行且高信用的项目中。",
+      "bullet4": "我们是首批获得柬埔寨国家银行 (NBC) 许可并获得柬埔寨证券交易所 (CSX) 批准的合格代币发行方和加密资产服务提供商 (CASP)。"
+    },
+    "profit": {
+      "title": "利润共享",
+      "body": "投资利润将以代币奖励或代币股息的形式与投资者共享。"
+    }
+  },
+  "sustainability": {
+    "title": "社会与可持续发展",
+    "description": "人与环境至关重要,我们运营业务的目标是为我们的社区和自然产生积极的影响。为此,我们将分享我们的盈利能力,作为对环境、经济和社会的贡献的一部分,特别是对我们业务活动所在地区。",
+    "badge": "致力于产生积极影响",
+    "cardTitle": "我们的核心影响",
+    "impacts": {
+      "community": "社区发展",
+      "environment": "环境保护",
+      "economy": "经济支持",
+      "territories": "可持续地区"
+    }
+  },
+  "careers": {
+    "title": "T.A Coin 的职业机会",
+    "description": "我们包容多元化,倡导女性领导力,并鼓励来自不同文化或背景的候选人。我们重视每位员工的贡献、想法和意见,以塑造一家完全可持续和可靠的房地产公司。",
+    "features": {
+      "diversity": {
+        "title": "多元化与包容",
+        "description": "面向各种背景的友好文化。"
+      },
+      "growth": {
+        "title": "职业成长",
+        "description": "与我们共塑可持续的房地产未来。"
+      }
+    },
+    "joinTitle": "加入我们的团队",
+    "joinDesc": "准备好做出影响吗?我们一直在寻找有才华的人才加入我们不断壮大的团队。",
+    "emailLabel": "发送邮件给 HR 团队",
+    "viewPositions": "查看开放职位"
+  },
+  "news": {
+    "label": "最新动态",
+    "titlePrefix": "来自",
+    "titleHighlight": "T.A 团队",
+    "subtitle": "及时了解 T.A Coin 的最新新闻、活动和见解",
+    "seeAll": "查看所有新闻"
+  },
+  "contact": {
+    "label": "联系我们",
+    "titlePrefix": "联系",
+    "titleHighlight": "我们",
+    "subtitle": "对 T.A Coin 有疑问或想了解更多?向我们发送消息,我们的团队将尽快回复您。",
+    "successTitle": "消息已发送!",
+    "successDescPrefix": "感谢您与我们联系。我们会尽快回复至",
+    "successDescSuffix": "。",
+    "sendAnother": "再发送一条消息",
+    "nameLabel": "您的姓名",
+    "namePlaceholder": "张三",
+    "emailLabel": "您的电子邮箱地址",
+    "emailPlaceholder": "yourname@email.com",
+    "messageLabel": "您的留言",
+    "messagePlaceholder": "我们能如何帮助您?",
+    "sending": "发送中...",
+    "sendMessage": "发送消息",
+    "errorGeneric": "出错了。请重试。",
+    "errorNetwork": "网络错误。请检查您的连接后重试。"
+  },
+  "footer": {
+    "brand": "T.A COIN 有限公司",
+    "brandDesc": "创新本地投资产品,建立市场信心,助力资本流入柬埔寨。",
+    "quickLinks": "快速链接",
+    "contactsUs": "联系我们",
+    "hotline": "热线",
+    "email": "邮箱",
+    "address": "地址",
+    "addressValue": "Canadia Tower,3 楼,315 号,Ang Duong 街(Monivong 大道交叉口),金边,柬埔寨",
+    "supportHours": "服务时间",
+    "weekdays": "周一至周五",
+    "saturday": "周六",
+    "downloadApp": "下载 T.A Coin 应用",
+    "copyright": "© {{year}} T.A Coin 版权所有。",
+    "privacyPolicy": "隐私政策",
+    "termsOfUse": "使用条款",
+    "disclaimer": "免责声明"
+  },
+  "homePopup": {
+    "title": "T.A Coin 重要更新!",
+    "greeting": "尊敬的 T.A Coin 用户:",
+    "para1": "我们很高兴地宣布对 T.A Coin 生态系统进行重大升级。我们的平台正在不断发展,为您提供更快的交易、更低的费用以及更直观的数字资产管理体验。",
+    "para2": "新增功能:增强的 KHQR 支付集成、覆盖柬埔寨各地的扩大商户网络,以及为您的数字钱包提供更强的安全性。我们建议所有用户探索这些新功能,并在应用程序中更新他们的偏好设置。",
+    "para3": "我们不断努力改进我们的系统,为您提供尽可能安全、高效和用户友好的数字金融体验。我们的使命仍然专注于推动金融创新,在柬埔寨数字资产市场建立信任。",
+    "para4": "感谢您成为 T.A Coin 旅程的一部分。我们感谢您持续的信任与支持,与我们一起共建金融的未来。",
+    "countdown": "您可以在 {{seconds}} 秒后关闭此窗口...",
+    "ready": "点击此框外任意位置可关闭。"
+  },
+  "backToTop": {
+    "ariaLabel": "返回顶部"
+  },
+  "jobs": {
+    "headerTitle": "开放职位",
+    "headerDesc": "加入推动柬埔寨增长与创新的团队。",
+    "searchPlaceholder": "搜索可用职位...",
+    "loading": "正在加载职位...",
+    "emptyState": "未找到匹配 \"{{term}}\" 的职位。",
+    "clearSearch": "清除搜索",
+    "available": "可用",
+    "keyAccountabilities": "主要职责",
+    "knowledgeRequirements": "知识与要求",
+    "workingConditions": "工作条件",
+    "applyBtn": "申请此职位",
+    "modalTitle": "申请职位",
+    "modalDesc": "如需申请,请通过以下方式联系我们的招聘团队:",
+    "emailApplication": "邮件申请",
+    "telegramContact": "电话 / Telegram"
+  },
+  "allNews": {
+    "tabAll": "全部",
+    "tabNews": "新闻",
+    "tabEvents": "活动",
+    "tabCampaign": "推广",
+    "empty": "此分类中暂无内容。"
+  },
+  "newsDetail": {
+    "notFound": "未找到该新闻",
+    "explore": "浏览其他新闻",
+    "seeAll": "查看所有新闻"
+  },
+  "disclaimer": {
+    "title": "免责声明",
+    "lastUpdated": "最后更新:2026 年 4 月 17 日",
+    "comingSoonTitle": "信息即将推出",
+    "comingSoon1": "我们目前正在更新免责声明信息,以确保为用户提供最准确和最新的指导。",
+    "comingSoon2": "请稍后再回来查看本页的完整内容。在此期间,如果您有任何紧急问题,请随时联系我们的支持团队。",
+    "contactTeam": "联系我们的团队",
+    "telegramSupport": "Telegram 支持"
+  },
+  "privacy": {
+    "title": "隐私政策",
+    "effectiveDate": "生效日期:2025 年 7 月 10 日",
+    "intro1": "本隐私政策描述了 T.A COIN CO., LTD.(\"TA COIN\")在您使用我们的平台(移动应用程序和/或网络应用程序)时如何收集、使用、存储和保护您的个人信息。我们致力于保护您的隐私并负责任地处理您的数据。",
+    "intro2": "您必须仔细阅读并接受本文件。如果您不同意本隐私政策,则必须停止使用我们的网络应用程序(网站)、移动应用程序和/或服务,或停止注册账户。本隐私政策是我们使用条款不可分割的一部分。",
+    "acceptance": {
+      "title": "接受隐私政策条款",
+      "body1": "通过使用我们的网络应用程序(网站)、移动应用程序并注册/登录我们的服务,点击确认复选框,您即明确同意本政策和使用条款中所述的条款和数据处理方式,包括对您个人数据的处理、存储和使用。",
+      "body2": "TA COIN 可能会不时修改和更新本隐私政策,以反映立法变化或审查我们的个人数据收集和处理方式。如果对本隐私政策进行了任何更改、修订和补充,它们将在网站发布后立即生效。"
+    },
+    "section1": {
+      "title": "1. 我们隐私承诺的介绍",
+      "body": "在 TA Coin 平台(应用程序和网络应用程序)中,我们了解您个人隐私的重要性。根据柬埔寨的监管要求和我们的内部政策,我们致力于秉持隐私保护精神。本政策旨在使我们的数据做法透明化,并使您能够就您的信息做出明智的决定。"
+    },
+    "section2": {
+      "title": "2. 我们收集的信息",
+      "intro": "当您使用我们的 TA Coin 平台(应用程序和网络应用程序)时,我们可能会根据您使用的功能从您及关于您的多种类型信息进行收集。",
+      "subDirectTitle": "2.1. 您直接向我们提供的信息",
+      "subDirect": {
+        "accountTitle": "账户信息:",
+        "accountBody": "当您创建账户时,我们会收集您的姓名、电子邮箱、电话号码和安全密码。",
+        "kycTitle": "身份验证信息(KYC - 了解您的客户):",
+        "kycBody": "为了遵守金融法规并防止欺诈,我们可能需要您提供政府签发的身份证件(例如国民身份证、护照)、您的照片(包括用于活体检测的 \"自拍\")和其他相关身份识别信息。",
+        "financialTitle": "财务信息:",
+        "financialBody": "这可能包括银行账户详情、移动支付账户详情以及应用程序/网络应用程序内的交易历史。",
+        "communicationTitle": "通信信息:",
+        "communicationBody": "您与我们的通信记录,例如客户支持咨询、争议解决咨询等。",
+        "userContentTitle": "用户内容:",
+        "userContentBody": "您通过应用程序/网络应用程序提交的任何信息,例如反馈或参与调查、活动等。"
+      },
+      "subAutoTitle": "2.2. 我们自动收集的信息",
+      "subAuto": {
+        "deviceTitle": "设备信息:",
+        "deviceBody": "我们收集有关您移动设备的信息,包括设备型号、操作系统版本、唯一设备标识符、移动网络信息和崩溃数据。",
+        "usageTitle": "使用数据:",
+        "usageBody": "我们收集您如何使用应用程序/网络应用程序的信息,例如您访问的功能、活动的时间和日期以及应用崩溃。",
+        "locationTitle": "位置信息:",
+        "locationBody": "经您明确同意,我们可能会从您的移动/平板设备收集精确或大致的位置信息。",
+        "logTitle": "日志数据:",
+        "logBody": "标准日志数据,包括 IP 地址、浏览器类型和引荐/退出页面。",
+        "transactionTitle": "交易信息:",
+        "transactionBody": "交易、存款、提款和其他交易的信息和余额。"
+      },
+      "subThirdTitle": "2.3. 来自第三方的信息",
+      "subThirdBody": "在必要时,我们可能会从第三方服务提供商(例如身份验证服务、支付处理商)处接收有关您的信息,以提供我们的服务。"
+    },
+    "section3": {
+      "title": "3. 我们如何使用您的信息",
+      "item1": "提供和维护我们的服务",
+      "item2": "用于安全、欺诈防范、AML 和 CTF",
+      "item3": "用于客户支持",
+      "item4": "用于通信",
+      "item5": "用于法律和监管合规",
+      "item6": "用于分析和研究"
+    },
+    "section4": {
+      "title": "4. 我们如何共享您的信息",
+      "item1": "经您同意",
+      "item2": "服务提供商",
+      "item3": "法律要求和执法",
+      "item4": "业务转让",
+      "item5": "汇总或匿名数据"
+    },
+    "section5": {
+      "title": "5. 数据保留",
+      "body": "除非法律要求或允许更长的保留期,我们将根据需要保留您的个人信息,以实现本隐私政策中概述的目的。"
+    },
+    "section6": {
+      "title": "6. 数据安全",
+      "body": "我们实施合理的技术和组织措施来保护您的个人信息,包括加密、访问控制、定期安全审计和员工培训。"
+    },
+    "section7": {
+      "title": "7. 您的权利",
+      "item1": "知情权",
+      "item2": "访问权",
+      "item3": "更正权",
+      "item4": "反对权",
+      "item5": "撤回同意"
+    },
+    "section8": {
+      "title": "8. 儿童隐私",
+      "body": "TA Coin 平台不适用于 18 岁以下个人。我们不会有意收集 18 岁以下儿童的个人信息。"
+    },
+    "section9": {
+      "title": "9. 本隐私政策的变更",
+      "body": "我们可能会不时更新本隐私政策。我们将通过在我们的应用程序/网络应用程序上发布更新的隐私政策,通知您任何重大变更。"
+    },
+    "section10": {
+      "title": "10. 联系我们"
+    }
+  },
+  "terms": {
+    "title": "条款与条件",
+    "effectiveDate": "生效日期:2026 年 2 月 19 日",
+    "companyName": "T.A COIN 有限公司",
+    "welcome": "欢迎使用 T.A Coin。本条款与条件管辖您对我们数字平台和服务的使用。",
+    "section1": {
+      "title": "1. 定义与解释",
+      "item11Title": "1.1 公司:",
+      "item11Body": "T.A Coin Co., Ltd.(\"T.A Coin\"、\"我们\"、\"我方\"),根据柬埔寨王国法律组建的公司。",
+      "item12Title": "1.2 平台:",
+      "item12Body": "T.A Coin 运营的网站、移动应用程序(iOS/Android)、API 以及其他数字渠道。",
+      "item13Title": "1.3 服务:",
+      "item13Body": "使用户能够访问数字资产服务的技术平台及相关功能。",
+      "item14Title": "1.4 用户:",
+      "item14Body": "(\"您\"、\"您的\")任何注册账户或访问服务的自然人或法人实体。",
+      "item15Title": "1.5 数字资产:",
+      "item15Body": "加密代币、币、稳定币以及其他价值的数字表现形式。",
+      "item16Title": "1.6 适用法律:",
+      "item16Body": "柬埔寨的所有法律、子法令、公告和法规。"
+    },
+    "section2": {
+      "title": "2. 接受条款",
+      "body1": "2.1 通过访问或使用平台,您承认本条款构成您与 T.A Coin 之间具有约束力的法律协议。",
+      "body2": "2.2 T.A Coin 仅作为技术平台和市场促进者。我们不充当您的经纪人、代理人或投资顾问。"
+    },
+    "section3": {
+      "title": "3. 公司信息",
+      "body": "3.1 T.A Coin Co., Ltd. 在柬埔寨成立,于商务部注册,注册号 1000502187,日期为 2025 年 5 月 30 日。"
+    },
+    "section4": {
+      "title": "4. 监管状态与投资者资格",
+      "sercTitle": "4.1 SERC 监管沙盒:",
+      "sercBody": "T.A Coin 在柬埔寨证券交易监管机构 (SERC) 的监管沙盒下运营。",
+      "qiTitle": "4.2 合格投资者要求:",
+      "qiBody": "通过使用本平台,您确认自己是适用 SERC 公告所定义的合格投资者。"
+    },
+    "section5": {
+      "title": "5. 服务范围",
+      "body1": "5.1 平台可能包括点对点 (P2P) 交易、在线购买财产/商品/服务、忠诚度计划和生物识别登录。",
+      "noLendingTitle": "5.2 无贷款:",
+      "noLendingBody": "T.A Coin 不提供贷款或信贷服务。"
+    },
+    "section6": {
+      "title": "6. 第三方服务提供商",
+      "body1": "6.1 T.A Coin 聘用第三方处理商和服务提供商(云提供商、KYC 供应商等)来提供服务。",
+      "noLiabilityTitle": "6.5 不对第三方负责:",
+      "noLiabilityBody": "T.A Coin 不对独立第三方服务提供商的作为或不作为所引起的损失承担责任。"
+    },
+    "section7": {
+      "title": "7. 资格与法律能力",
+      "body": "7.1 您保证您至少 18 岁,具有法律能力,且未受到制裁。"
+    },
+    "section8": {
+      "title": "8. 账户注册与安全",
+      "body": "8.1 您必须提供准确信息并保护您的凭证。您同意以电子方式接收通讯。"
+    },
+    "section9": {
+      "title": "9. 用户行为",
+      "body": "9.1 您不得从事欺诈、市场操纵或使用自动化工具干扰平台。"
+    },
+    "section11": {
+      "title": "11. 风险披露",
+      "body": "11.1 数字资产高度波动,可能迅速贬值。您承认区块链交易可能不可逆转。"
+    },
+    "section12": {
+      "title": "12. AML/KYC 合规",
+      "body": "12.1 T.A Coin 遵守 2020 年 AML/CFT 法及实施文件。用户必须完成身份验证 (CDD)。"
+    },
+    "section13": {
+      "title": "13. 隐私",
+      "body": "13.1 T.A Coin 处理个人数据以提供服务、履行 KYC/AML 义务并确保安全。"
+    },
+    "section19": {
+      "title": "19. 责任限制",
+      "body": "19.1 在法律允许的最大范围内,T.A Coin 不对任何间接、偶发或后果性损害承担责任。"
+    },
+    "section24": {
+      "title": "24. 适用法律与争议解决",
+      "body1": "24.1 本条款受柬埔寨王国法律管辖。",
+      "body2": "24.2 任何争议应由国家商业仲裁中心 (NCAC) 根据 NCAC 仲裁规则 (2021) 在金边进行最终仲裁解决。"
+    },
+    "contactTitle": "联系信息",
+    "telegramSupport": "Telegram 支持"
+  },
+  "chatbot": {
+    "headerTitle": "T.A Coin 客户支持",
+    "liveAgent": "在线客服",
+    "statusWaiting": "等待中...",
+    "statusConnected": "已连接",
+    "statusTimedOut": "已超时",
+    "waitingForAgent": "正在等待客服...",
+    "agentJoined": "✅ 客服已加入对话。",
+    "assistantName": "T.A Coin 助手",
+    "agentLabel": "客服",
+    "systemLabel": "系统",
+    "inputPlaceholder": "输入您的消息",
+    "inputPlaceholderAgent": "输入消息...",
+    "inputPlaceholderWaiting": "等待客服中...",
+    "inputPlaceholderTimedOut": "会话已超时",
+    "inputPlaceholderForm": "请填写上方表单",
+    "send": "发送",
+    "attach": {
+      "tooLarge": "图片必须小于 5 MB。",
+      "uploadFailed": "上传失败：{{message}}"
+    },
+    "needHelp": "需要帮助?",
+    "backToBot": "返回机器人",
+    "customerDetails": "客户信息",
+    "contactInfo": "联系方式。",
+    "nameLabel": "姓名 *",
+    "phoneLabel": "电话 *",
+    "emailLabel": "电子邮箱 *",
+    "issueDetailsTitle": "问题详情",
+    "issueDetailsDesc": "描述问题。",
+    "typeLabel": "类型 *",
+    "detailsLabel": "详情",
+    "cancel": "取消",
+    "submitting": "提交中...",
+    "connectToAgent": "连接客服",
+    "sessionEndingIn": "会话将在 {{time}} 后因不活动而结束。",
+    "opt": {
+      "faqs": "常见问题",
+      "connectToAgent": "联系客服",
+      "goToAccountSettings": "前往账户设置"
+    },
+    "cat": {
+      "Getting Started": "新手入门",
+      "Account & App": "账户与应用",
+      "Payments & Wallet": "支付与钱包",
+      "Security": "安全",
+      "Support": "支持",
+      "Careers": "招聘",
+      "Legal": "法律"
+    },
+    "issue": {
+      "Account Issue": "账户问题",
+      "General Enquiry": "一般咨询",
+      "KYC / Verification Issue": "KYC / 身份验证问题",
+      "Login Issue": "登录问题",
+      "OTP Issue": "OTP 问题",
+      "P2P Dispute": "P2P 纠纷",
+      "P2P Issue": "P2P 问题",
+      "Technical Support": "技术支持",
+      "Transaction Issue": "交易问题",
+      "Voucher / Coupon Issue": "代金券 / 优惠券问题",
+      "Withdrawal Issue": "提现问题"
+    },
+    "bot": {
+      "greeting": "您好！今天有什么可以帮您？",
+      "chooseCategory": "请选择一个类别，或直接输入您的问题。",
+      "categoryIntro": "以下是常见的 {{category}} 问题：",
+      "categoryNone": "未找到关于 {{category}} 的常见问题。",
+      "connecting": "🔄 正在为您接通人工客服，请稍候……",
+      "leftAgent": "您已离开人工客服对话。还有什么可以帮您？",
+      "timedOut": "⏱️ 由于长时间无操作，您的人工客服会话已关闭，对话已保存。还有什么可以帮您？",
+      "supportFormPrompt": "请填写此支持表单，以便我们为您接通合适的客服。",
+      "lowConfidence": "我在常见问题中找不到明确的答案。需要我为您接通人工客服，还是按类别浏览常见问题？",
+      "searchError": "我现在无法搜索知识库。您想转接人工客服吗？",
+      "sendFailed": "消息发送失败，请重试。",
+      "supportFailed": "支持请求失败：{{message}}",
+      "submittedTicket": "已提交工单：{{type}}",
+      "completeFields": "请填写所有必填项。"
+    },
+    "predefined": {
+      "greeting": "您好！我是 T.A Coin 助手。今天有什么可以帮您？",
+      "thanks": "不客气！还有什么可以帮您的吗？",
+      "goodbye": "感谢您联系 T.A Coin 支持，祝您愉快！",
+      "agent_request": "好的，我来为您接通人工客服。请填写下面的简短表单，以便我们为您安排合适的客服。"
+    }
+  }
+}

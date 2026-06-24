@@ -7,12 +7,15 @@ import { supabase } from './supabase';
  * @param {Array} chatHistory - The array of previous messages for context memory.
  * @returns {Promise<{text: string, action: string|null}>} The generated response from the AI.
  */
-export async function askSupportBot(userMessage, chatHistory = []) {
+export async function askSupportBot(userMessage, chatHistory = [], lang = 'en') {
   try {
-    // 1. Prepare the payload exactly as the Edge Function expects it
+    // 1. Prepare the payload exactly as the Edge Function expects it.
+    //    `lang` ('en' | 'km' | 'zh') tells the edge function which language to
+    //    generate the answer in and which stored FAQ translation to prefer.
     const payload = {
       query: userMessage,
-      history: chatHistory
+      history: chatHistory,
+      lang
     };
 
     // 2. Call the Edge Function via the Supabase Client

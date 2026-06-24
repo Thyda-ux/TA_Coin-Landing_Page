@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ChevronDown, ChevronUp, Users, Briefcase, Search, CheckCircle, MapPin, Mail, MessageCircle, X, Loader2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { sanitizeRichHtml } from '../lib/sanitizeHtml';
 import styles from './styles/Jobs.module.css';
 
 export default function Jobs() {
+  const { t } = useTranslation();
   const [jobs, setJobs] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [expandedTitle, setExpandedTitle] = useState(null);
@@ -65,8 +66,8 @@ export default function Jobs() {
 
 
         <div className={styles.headerDiv}>
-          <h1 className={styles.headerTitle}>Open Positions</h1>
-          <p className={styles.headerDesc}>Join the team fueling growth and innovation in Cambodia.</p>
+          <h1 className={styles.headerTitle}>{t('jobs.headerTitle')}</h1>
+          <p className={styles.headerDesc}>{t('jobs.headerDesc')}</p>
         </div>
 
         {/* Search Bar */}
@@ -75,7 +76,7 @@ export default function Jobs() {
             <Search size={20} className={styles.searchIcon} />
             <input
               type="text"
-              placeholder="Search available positions..."
+              placeholder={t('jobs.searchPlaceholder')}
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className={styles.searchInput}
@@ -87,16 +88,16 @@ export default function Jobs() {
           {isLoading ? (
             <div className={styles.loadingContainer}>
               <Loader2 size={48} className={`animate-spin ${styles.loadingSpinner}`} />
-              <p className={styles.loadingText}>Loading positions...</p>
+              <p className={styles.loadingText}>{t('jobs.loading')}</p>
             </div>
           ) : filteredJobs.length === 0 ? (
             <div className={styles.emptyStateContainer}>
-              <p className={styles.emptyStateText}>No positions found matching "{searchTerm}".</p>
+              <p className={styles.emptyStateText}>{t('jobs.emptyState', { term: searchTerm })}</p>
               <button
                 onClick={() => setSearchTerm('')}
                 className={styles.clearSearchBtn}
               >
-                Clear search
+                {t('jobs.clearSearch')}
               </button>
             </div>
           ) : (
@@ -121,7 +122,7 @@ export default function Jobs() {
                           <MapPin size={16} /> {job.city || 'Phnom Penh'}, {job.country || 'Cambodia'}
                         </span>
                         <span className={styles.jobMetaItem}>
-                          <Users size={16} /> {job.person_count || '1'} Available
+                          <Users size={16} /> {job.person_count || '1'} {t('jobs.available')}
                         </span>
                         <span className={styles.jobMetaItem}>
                           <Briefcase size={16} /> {job.type}
@@ -140,7 +141,7 @@ export default function Jobs() {
                         {/* Accountabilities */}
                         <div>
                           <h3 className={styles.sectionTitle}>
-                            <CheckCircle size={18} color="var(--color-primary)" /> Key Accountabilities
+                            <CheckCircle size={18} color="var(--color-primary)" /> {t('jobs.keyAccountabilities')}
                           </h3>
                           <div className={styles.richTextContainer}>
                             {typeof job.key_accountabilities === 'string' && job.key_accountabilities.trim().startsWith('<') ? (
@@ -158,7 +159,7 @@ export default function Jobs() {
                         {/* Requirements */}
                         <div>
                           <h3 className={styles.sectionTitle}>
-                            <CheckCircle size={18} color="var(--color-secondary-dark)" /> Knowledge & Requirements
+                            <CheckCircle size={18} color="var(--color-secondary-dark)" /> {t('jobs.knowledgeRequirements')}
                           </h3>
                           <div className={styles.richTextContainer}>
                             {typeof job.knowledge_requirements === 'string' && job.knowledge_requirements.trim().startsWith('<') ? (
@@ -176,7 +177,7 @@ export default function Jobs() {
                         {/* Working Conditions */}
                         <div>
                           <h3 className={styles.sectionTitle}>
-                            <CheckCircle size={18} color="green" /> Working Conditions
+                            <CheckCircle size={18} color="green" /> {t('jobs.workingConditions')}
                           </h3>
                           <div className={styles.richTextContainer}>
                             {typeof job.working_conditions === 'string' && job.working_conditions.trim().startsWith('<') ? (
@@ -199,7 +200,7 @@ export default function Jobs() {
                             setShowApplyModal(true);
                           }}
                         >
-                          Apply for this position
+                          {t('jobs.applyBtn')}
                         </button>
 
                       </div>
@@ -228,16 +229,16 @@ export default function Jobs() {
             >
               <X size={24} />
             </button>
-            <h2 className={styles.modalTitle}>Apply for Position</h2>
+            <h2 className={styles.modalTitle}>{t('jobs.modalTitle')}</h2>
             <p className={styles.modalSubtitle}>{applyPosition}</p>
 
-            <p className={styles.modalDesc}>To apply, please reach out to our recruitment team using one of the following methods:</p>
+            <p className={styles.modalDesc}>{t('jobs.modalDesc')}</p>
 
             <div className={styles.contactMethodsContainer}>
               <a href="mailto:chandara.l@tacointrade.com" className={styles.contactMethodLink}>
                 <Mail size={24} color="var(--color-primary)" />
                 <div className={styles.contactMethodText}>
-                  <div className={styles.contactMethodLabel}>Email Application</div>
+                  <div className={styles.contactMethodLabel}>{t('jobs.emailApplication')}</div>
                   <div className={styles.contactMethodValue}>chandara.l@tacointrade.com</div>
                 </div>
               </a>
@@ -245,7 +246,7 @@ export default function Jobs() {
               <a href="https://t.me/+85589555672" target="_blank" rel="noopener noreferrer" className={styles.contactMethodLink}>
                 <MessageCircle size={24} color="var(--color-secondary-dark)" />
                 <div className={styles.contactMethodText}>
-                  <div className={styles.contactMethodLabel}>Phone / Telegram Contact</div>
+                  <div className={styles.contactMethodLabel}>{t('jobs.telegramContact')}</div>
                   <div className={styles.contactMethodValue}>089 555 672</div>
                 </div>
               </a>

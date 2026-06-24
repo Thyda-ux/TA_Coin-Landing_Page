@@ -20,8 +20,8 @@
   --color-border: #e2e8f0;
 
   /* Typography */
-  --font-heading: 'Outfit', sans-serif;
-  --font-body: 'Inter', sans-serif;
+  --font-heading: 'Outfit', 'Noto Sans Khmer', 'Noto Sans SC', sans-serif;
+  --font-body: 'Inter', 'Noto Sans Khmer', 'Noto Sans SC', sans-serif;
 
   /* Spacing */
   --spacing-1: 0.25rem;

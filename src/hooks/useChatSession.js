@@ -1,4 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '../lib/supabase';
 import { askSupportBot } from '../lib/vectorService';
 import { matchPredefinedResponse } from '../lib/predefinedResponses';
@@ -9,15 +10,23 @@ import { validateSupportForm, buildSupportSummary, createSupportTicket } from '.
 export const CHAT_INACTIVITY_TIMEOUT_MINUTES = 20;
 const CHAT_TIMEOUT_WARNING_MINUTES = 5;
 
-const INITIAL_MESSAGES = [
+// Option buttons carry a stable `id` (logic) plus a localized `label` (display).
+const baseOptions = (t) => [
+  { id: 'faqs', label: t('chatbot.opt.faqs') },
+  { id: 'agent', label: t('chatbot.opt.connectToAgent') },
+];
+
+const getInitialMessages = (t) => [
   {
     role: 'bot',
-    text: 'Hi there. How can we help you today?',
-    timestamp: null,
-    options: ['FAQs', 'Connect to Agent'],
+    text: t('chatbot.bot.greeting'),
+    timestamp: new Date().toISOString(),
+    options: baseOptions(t),
   },
 ];
 
+// Canonical English category keys — used for the DB query AND as the option id.
+// The display label is localized via t(`chatbot.cat.${key}`).
 export const CATEGORY_OPTIONS = [
   'Getting Started',
   'Account & App',
@@ -60,11 +69,15 @@ export function formatFileSize(bytes) {
 }
 
 export const useChatSession = (isOpen) => {
+  const { t, i18n } = useTranslation();
+  // Normalize to a base language code ('en-US' -> 'en'); always one of en/km/zh.
+  const lang = (i18n.resolvedLanguage || i18n.language || 'en').split('-')[0];
+  // Localized [FAQs, Connect to Agent] option set, rebuilt for the current language.
+  const opts = () => baseOptions(t);
+
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [messages, setMessages] = useState(() => 
-    INITIAL_MESSAGES.map(m => ({ ...m, timestamp: m.timestamp || new Date().toISOString() }))
-  );
+  const [messages, setMessages] = useState(() => getInitialMessages(t));
   const [supportForm, setSupportForm] = useState(getInitialSupportForm);
   const [supportFormError, setSupportFormError] = useState('');
   const [supportFormInlineFaq, setSupportFormInlineFaq] = useState(false);
@@ -104,9 +117,9 @@ export const useChatSession = (isOpen) => {
           ...prev,
           {
             role: 'bot',
-            text: `⏱️ Your agent chat session was closed due to inactivity. The conversation has been saved. How else can I help you?`,
+            text: t('chatbot.bot.timedOut'),
             timestamp: new Date().toISOString(),
-            options: ['FAQs', 'Connect to Agent'],
+            options: opts(),
           },
         ]);
       }, 1500);
@@ -138,11 +151,21 @@ export const useChatSession = (isOpen) => {
       ...current,
       {
         role: 'bot',
-        text: 'Choose a category or type your question.',
+        text: t('chatbot.bot.chooseCategory'),
         timestamp: new Date().toISOString(),
-        options: CATEGORY_OPTIONS,
+        options: CATEGORY_OPTIONS.map((key) => ({ id: key, label: t(`chatbot.cat.${key}`) })),
       },
     ]);
+  };
+
+  // Pick the question/answer in the active language, falling back to English.
+  const localizeFaq = (f) => {
+    const q = lang === 'km' ? f.question_km : lang === 'zh' ? f.question_zh : null;
+    const a = lang === 'km' ? f.answer_km : lang === 'zh' ? f.answer_zh : null;
+    return {
+      question: (q && q.trim()) ? q : f.question,
+      answer: (a && a.trim()) ? a : f.answer,
+    };
   };
 
   const showCategoryFaqs = async (category) => {
@@ -150,37 +173,39 @@ export const useChatSession = (isOpen) => {
     try {
       const { data, error } = await supabase
         .from('support_faqs')
-        .select('question, answer, category')
+        .select('question, answer, question_km, answer_km, question_zh, answer_zh, category')
         .eq('is_published', true)
         .eq('category', category)
         .order('question', { ascending: true });
 
       if (error) throw error;
 
+      const catLabel = t(`chatbot.cat.${category}`);
       setMessages((current) => [
         ...current,
         {
           role: 'bot',
-          text: data?.length ? `Here are common ${category} questions:` : `No FAQs found for ${category}.`,
+          text: data?.length ? t('chatbot.bot.categoryIntro', { category: catLabel }) : t('chatbot.bot.categoryNone', { category: catLabel }),
           timestamp: new Date().toISOString(),
-          faqLinks: data || [],
+          faqLinks: (data || []).map(localizeFaq),
         },
       ]);
     } catch (err) {
-      setMessages((current) => [...current, { role: 'bot', text: `Error: ${err.message}`, timestamp: new Date().toISOString() }]);
+      setMessages((current) => [...current, { role: 'bot', text: t('chatbot.bot.searchError'), timestamp: new Date().toISOString(), options: opts() }]);
     } finally {
       setIsLoading(false);
     }
   };
 
-  const connectToAgent = async (description) => {
+  const connectToAgent = async (description, customerInfo = {}) => {
     try {
       setIsLoading(true);
-      await startAgentSession(description);
+      await startAgentSession(description, customerInfo);
       setMode('agent');
-      setMessages((current) => [...current, { role: 'bot', text: '🔄 Connecting you to a live agent. Please wait...', timestamp: new Date().toISOString() }]);
+      setMessages((current) => [...current, { role: 'bot', text: t('chatbot.bot.connecting'), timestamp: new Date().toISOString() }]);
     } catch (err) {
-      setMessages((current) => [...current, { role: 'bot', text: `Error: ${err.message}`, timestamp: new Date().toISOString() }]);
+      if (import.meta.env?.DEV) console.error('Failed to connect to agent:', err);
+      setMessages((current) => [...current, { role: 'bot', text: t('chatbot.bot.searchError'), timestamp: new Date().toISOString(), options: opts() }]);
     } finally {
       setIsLoading(false);
     }
@@ -194,9 +219,9 @@ export const useChatSession = (isOpen) => {
       ...prev,
       {
         role: 'bot',
-        text: 'You have left the agent chat. How else can I help you?',
+        text: t('chatbot.bot.leftAgent'),
         timestamp: new Date().toISOString(),
-        options: ['FAQs', 'Connect to Agent'],
+        options: opts(),
       },
     ]);
   };
@@ -204,7 +229,7 @@ export const useChatSession = (isOpen) => {
   const handleFileSelect = (file) => {
     if (!file) return false;
     if (file.size > 5 * 1024 * 1024) {
-      setAttachError('Image must be smaller than 5 MB.');
+      setAttachError(t('chatbot.attach.tooLarge'));
       return false;
     }
     setAttachError('');
@@ -223,7 +248,7 @@ export const useChatSession = (isOpen) => {
       await sendAgentImage(pendingImage.file);
       clearPendingImage();
     } catch (err) {
-      setAttachError(`Upload failed: ${err.message}`);
+      setAttachError(t('chatbot.attach.uploadFailed', { message: err.message }));
     } finally {
       setIsUploading(false);
     }
@@ -242,7 +267,7 @@ export const useChatSession = (isOpen) => {
     const { normalized, isValid, errors } = validateSupportForm(supportForm);
 
     if (!isValid) {
-      setSupportFormError(Object.values(errors)[0] || 'Please complete all required fields.');
+      setSupportFormError(Object.values(errors)[0] || t('chatbot.bot.completeFields'));
       return;
     }
 
@@ -257,9 +282,10 @@ export const useChatSession = (isOpen) => {
       ? `${buildSupportSummary(normalized)}\nTicket No: ${ticketInfo.ticket_no || ticketInfo.id}`
       : buildSupportSummary(normalized);
 
+    const issueLabel = t(`chatbot.issue.${normalized.issueType}`, normalized.issueType);
     setMessages((current) => [
       ...current,
-      { role: 'user', text: `Submitted Ticket for: ${normalized.issueType}`, timestamp: new Date().toISOString() },
+      { role: 'user', text: t('chatbot.bot.submittedTicket', { type: issueLabel }), timestamp: new Date().toISOString() },
     ]);
 
     setIsLoading(true);
@@ -277,16 +303,18 @@ export const useChatSession = (isOpen) => {
       });
       resetSupportForm();
     } catch (err) {
-      setMessages((prev) => [...prev, { role: 'bot', text: `Support request failed: ${err.message}`, timestamp: new Date().toISOString() }]);
+      setMessages((prev) => [...prev, { role: 'bot', text: t('chatbot.bot.supportFailed', { message: err.message }), timestamp: new Date().toISOString() }]);
     } finally {
       setIsLoading(false);
     }
   };
 
+  // `option` is { id, label }. Switch on the stable id; show the localized label.
   const handleOption = async (option, onShowForm) => {
-    setMessages((current) => [...current, { role: 'user', text: option, timestamp: new Date().toISOString() }]);
+    const id = option?.id;
+    setMessages((current) => [...current, { role: 'user', text: option?.label ?? '', timestamp: new Date().toISOString() }]);
 
-    if (option === 'FAQs') {
+    if (id === 'faqs') {
       if (supportForm.active) {
         setSupportFormInlineFaq(true);
         if (onShowForm) onShowForm();
@@ -296,16 +324,17 @@ export const useChatSession = (isOpen) => {
       return;
     }
 
-    if (CATEGORY_OPTIONS.includes(option)) {
-      await showCategoryFaqs(option);
+    // Category options carry the canonical English category name as their id.
+    if (CATEGORY_OPTIONS.includes(id)) {
+      await showCategoryFaqs(id);
       return;
     }
 
-    if (option === 'Connect to Agent') {
+    if (id === 'agent') {
       setSupportForm({ ...getInitialSupportForm(), active: true });
       setSupportFormError('');
       setSupportFormInlineFaq(false);
-      setMessages((prev) => [...prev, { role: 'bot', text: 'Please complete this support form so we can connect you to the right agent.', timestamp: new Date().toISOString() }]);
+      setMessages((prev) => [...prev, { role: 'bot', text: t('chatbot.bot.supportFormPrompt'), timestamp: new Date().toISOString() }]);
       if (onShowForm) onShowForm();
     }
   };
@@ -339,7 +368,7 @@ export const useChatSession = (isOpen) => {
             ...current,
             {
               role: 'bot',
-              text: 'Failed to send message. Please try again.',
+              text: t('chatbot.bot.sendFailed'),
               timestamp: new Date().toISOString(),
             },
           ]);
@@ -369,9 +398,9 @@ export const useChatSession = (isOpen) => {
         ...current,
         {
           role: 'bot',
-          text: predefined.text,
+          text: t(`chatbot.predefined.${predefined.intent}`),
           timestamp: new Date().toISOString(),
-          options: predefined.options,
+          options: predefined.withOptions ? opts() : undefined,
         },
       ]);
       return;
@@ -383,28 +412,38 @@ export const useChatSession = (isOpen) => {
       // Fast-path: deterministic intent/keyword match against the in-memory
       // FAQ cache. Skips the Gemini round-trip entirely for the ~50 known
       // intents (free, instant, deterministic).
-      const hits = await smartSearchFaqs(cleanMessage);
-      if (hits.length > 0 && hits[0].score >= HIGH_CONFIDENCE) {
-        const top = hits[0];
-        const related = hits.slice(1, 4).map(h => ({
-          question: h.question,
-          answer: h.answer,
-        }));
-        setMessages((current) => [
-          ...current,
-          {
-            role: 'bot',
-            text: top.answer,
-            timestamp: new Date().toISOString(),
-            faqLinks: related.length > 0 ? related : undefined,
-          },
-        ]);
-        return;
+      //
+      // English only: smartSearchFaqs strips non-ASCII characters when it
+      // extracts keywords, so Khmer/Chinese queries would produce no keywords
+      // and match nothing. For those languages we skip straight to the RAG
+      // edge function, which retrieves against the English knowledge base and
+      // generates the answer in the user's language (preferring a stored
+      // translation when the matched FAQ has one).
+      if (lang === 'en') {
+        const hits = await smartSearchFaqs(cleanMessage);
+        if (hits.length > 0 && hits[0].score >= HIGH_CONFIDENCE) {
+          const top = hits[0];
+          const related = hits.slice(1, 4).map(h => ({
+            question: h.question,
+            answer: h.answer,
+          }));
+          setMessages((current) => [
+            ...current,
+            {
+              role: 'bot',
+              text: top.answer,
+              timestamp: new Date().toISOString(),
+              faqLinks: related.length > 0 ? related : undefined,
+            },
+          ]);
+          return;
+        }
       }
 
-      // Fallback: RAG edge function for novel/ambiguous queries
+      // Fallback (and primary path for km/zh): RAG edge function. Passes the
+      // active language so the edge function answers in kind.
       const chatHistory = updatedMessages.slice(-6).map(m => ({ role: m.role, text: m.text }));
-      const data = await askSupportBot(cleanMessage, chatHistory);
+      const data = await askSupportBot(cleanMessage, chatHistory, lang);
 
       // Server-reported low confidence → offer agent escalation instead of
       // confidently presenting a weak match.
@@ -413,9 +452,9 @@ export const useChatSession = (isOpen) => {
           ...current,
           {
             role: 'bot',
-            text: data.text || "I couldn't find a clear answer in our FAQs. Want me to connect you with an agent, or browse FAQs by category?",
+            text: data.text || t('chatbot.bot.lowConfidence'),
             timestamp: new Date().toISOString(),
-            options: ['FAQs', 'Connect to Agent'],
+            options: opts(),
           },
         ]);
         return;
@@ -428,7 +467,7 @@ export const useChatSession = (isOpen) => {
             role: 'bot',
             text: data.text,
             timestamp: new Date().toISOString(),
-            options: ['Go to Account Settings'],
+            options: [{ id: 'account_settings', label: t('chatbot.opt.goToAccountSettings') }],
           },
         ]);
       } else {
@@ -447,9 +486,9 @@ export const useChatSession = (isOpen) => {
         ...current,
         {
           role: 'bot',
-          text: "I'm having trouble searching our knowledge base right now. Would you like to connect to an agent?",
+          text: t('chatbot.bot.searchError'),
           timestamp: new Date().toISOString(),
-          options: ['Connect to Agent'],
+          options: [{ id: 'agent', label: t('chatbot.opt.connectToAgent') }],
         },
       ]);
     } finally {
