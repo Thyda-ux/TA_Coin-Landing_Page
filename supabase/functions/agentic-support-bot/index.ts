@@ -100,6 +100,7 @@ function isSmallTalk(query: string): boolean {
 const ALLOWED_ORIGINS = new Set([
   "https://tacoin.com",
   "https://www.tacoin.com",
+  "https://ta-coin-landing-page-qrtn.vercel.app",
   "http://localhost:5173",
   "http://localhost:4173",
 ]);
